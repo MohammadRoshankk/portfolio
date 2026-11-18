@@ -387,10 +387,9 @@ function initBackgroundEngine() {
 }
 
 // ==========================================================================
-// 4. PROCEDURAL WEB AUDIO SYNTHESIZER
+// 4. ATMOSPHERIC SOUNDTRACK & AMBIENT AUDIO SYSTEM (EPIC ODYSSEY SCORE)
 // ==========================================================================
-let audioCtx = null;
-let masterGain = null;
+let audioTrack = null;
 let soundEnabled = false;
 
 function initAudioSystem() {
@@ -398,47 +397,51 @@ function initAudioSystem() {
   const audioLabel = document.getElementById('audio-label');
   if (!audioBtn) return;
 
+  function ensureAudio() {
+    if (!audioTrack) {
+      audioTrack = new Audio('./assets/audio/epic-soundtrack.mp3');
+      audioTrack.loop = true;
+      audioTrack.volume = 0;
+    }
+  }
+
+  function fadeAudio(targetVol, duration, onComplete) {
+    if (!audioTrack) return;
+    const startVol = audioTrack.volume;
+    const delta = targetVol - startVol;
+    const startTime = performance.now();
+
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      audioTrack.volume = Math.max(0, Math.min(1, startVol + delta * progress));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else if (onComplete) {
+        onComplete();
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
   audioBtn.addEventListener('click', () => {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-      masterGain.connect(audioCtx.destination);
-
-      const oscA = audioCtx.createOscillator();
-      oscA.type = 'sine';
-      oscA.frequency.setValueAtTime(55, audioCtx.currentTime);
-
-      const oscB = audioCtx.createOscillator();
-      oscB.type = 'triangle';
-      oscB.frequency.setValueAtTime(110, audioCtx.currentTime);
-      oscB.detune.setValueAtTime(3, audioCtx.currentTime);
-
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(320, audioCtx.currentTime);
-
-      oscA.connect(filter);
-      oscB.connect(filter);
-      filter.connect(masterGain);
-
-      oscA.start();
-      oscB.start();
-    }
-
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-
+    ensureAudio();
     soundEnabled = !soundEnabled;
+
     if (soundEnabled) {
-      masterGain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.3);
       audioBtn.classList.add('playing');
       if (audioLabel) audioLabel.textContent = 'Sound On';
+      audioTrack.play().then(() => {
+        fadeAudio(0.5, 800);
+      }).catch(err => {
+        console.warn('Playback error:', err);
+      });
     } else {
-      masterGain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 0.3);
       audioBtn.classList.remove('playing');
       if (audioLabel) audioLabel.textContent = 'Sound Off';
+      fadeAudio(0, 600, () => {
+        audioTrack.pause();
+      });
     }
   });
 }
