@@ -10,7 +10,19 @@
 
 import * as THREE from 'three';
 import { initPortraitReveal } from './portrait-reveal.js';
-import { STAGE04_POSITIONS, STAGE04_COLORS, STAGE04_LUMS, STAGE04_FEATURES } from './stage04-face-data.js';
+import {
+  EVOLUTION_COUNT,
+  STAGE01_POSITIONS,
+  STAGE02_POSITIONS,
+  STAGE03_POSITIONS,
+  STAGE04_POSITIONS,
+  STAGE01_COLORS,
+  STAGE02_COLORS,
+  STAGE03_COLORS,
+  STAGE04_COLORS,
+  STAGE_LUMS,
+  STAGE_FEATURES
+} from './evolution-stages-data.js';
 
 // --- MATH UTILITIES ---
 const PI2 = Math.PI * 2;
@@ -21,112 +33,50 @@ function easeInOut(t) {
 }
 
 // ==========================================================================
-// 1. PROCEDURAL 3D FORM GENERATORS (4 HIGH-FIDELITY CHAPTER FORMATIONS)
+// 1. PROCEDURAL 3D FORM POPULATOR (4 CONTINUOUS FACIAL EVOLUTION STAGES)
 // ==========================================================================
 const FormGenerators = {
-  // Chapter 01: Raw Signals & Chaos — Cosmic Spherical Galactic Nebula
-  celestial(count, target) {
-    for (let i = 0; i < count; i++) {
-      const u = Math.random() * PI2;
-      const v = Math.acos(2 * Math.random() - 1);
-      const r = Math.pow(Math.random(), 0.62) * 0.95 + 0.12;
-      const spiral = r * 1.85;
-      const theta = u + spiral;
-
-      target[i * 3] = r * Math.sin(v) * Math.cos(theta) + rand(-0.025, 0.025);
-      target[i * 3 + 1] = r * Math.sin(v) * Math.sin(theta) * 0.65 + rand(-0.025, 0.025);
-      target[i * 3 + 2] = r * Math.cos(v) * 0.75 + rand(-0.025, 0.025);
-    }
-  },
-
-  // Chapter 02: Neural Synapses — 3D Cybernetic Synaptic Torus & Interconnected Lattice
-  torus(count, target) {
-    for (let i = 0; i < count; i++) {
-      const u = Math.random() * PI2;
-      const v = Math.random() * PI2;
-      const isCoreNode = i % 8 === 0;
-      const R = isCoreNode ? 0.38 : 0.64;
-      const r = isCoreNode ? 0.11 : 0.22;
-      const twist = Math.sin(u * 5.0) * 0.045;
-
-      target[i * 3] = (R + (r + twist) * Math.cos(v)) * Math.cos(u);
-      target[i * 3 + 1] = (r + twist) * Math.sin(v);
-      target[i * 3 + 2] = (R + (r + twist) * Math.cos(v)) * Math.sin(u);
-    }
-  },
-
-  // Chapter 03: Distributed Matrix — 3D Architectural Coordinate Hyper-Cube
-  cube(count, target) {
-    for (let i = 0; i < count; i++) {
-      if (i % 6 < 4) {
-        // Precision layered outer grid faces
-        const gridRes = 14;
-        const u = (Math.floor(Math.random() * gridRes) / (gridRes - 1) - 0.5) * 0.82;
-        const v = (Math.floor(Math.random() * gridRes) / (gridRes - 1) - 0.5) * 0.82;
-        const face = (i % 2 === 0 ? 0.41 : -0.41);
-        const axis = Math.floor(Math.random() * 3);
-
-        target[i * 3] = axis === 0 ? face : axis === 1 ? u : v;
-        target[i * 3 + 1] = axis === 0 ? u : axis === 1 ? face : v;
-        target[i * 3 + 2] = axis === 2 ? face : axis === 1 ? u : v;
-      } else {
-        // Internal Cartesian distribution lines (streaming pipelines)
-        const axis = i % 3;
-        const t = (Math.random() - 0.5) * 0.82;
-        const crossU = rand(-0.08, 0.08);
-        const crossV = rand(-0.08, 0.08);
-
-        target[i * 3] = axis === 0 ? t : crossU;
-        target[i * 3 + 1] = axis === 1 ? t : crossV;
-        target[i * 3 + 2] = axis === 2 ? t : crossU;
-      }
-    }
-  },
-
-  // Chapter 04: Stage 04 PoC — Mohammad Roshan 3D Facial Reconstruction Point Cloud
-  faceStage04(count, targetPos, targetCol, targetLum, targetFeat) {
+  // Populate the 4 continuous facial evolution stages for COUNT particles
+  populateEvolutionStages(count, forms, colors, lums, features) {
     for (let i = 0; i < count; i++) {
       const srcIdx = count === 12000 ? i : (i * 2) % 12000;
-      targetPos[i * 3] = STAGE04_POSITIONS[srcIdx * 3];
-      targetPos[i * 3 + 1] = STAGE04_POSITIONS[srcIdx * 3 + 1];
-      targetPos[i * 3 + 2] = STAGE04_POSITIONS[srcIdx * 3 + 2];
 
-      if (targetCol) {
-        targetCol[i * 3] = STAGE04_COLORS[srcIdx * 3];
-        targetCol[i * 3 + 1] = STAGE04_COLORS[srcIdx * 3 + 1];
-        targetCol[i * 3 + 2] = STAGE04_COLORS[srcIdx * 3 + 2];
-      }
-      if (targetLum) {
-        targetLum[i] = STAGE04_LUMS[srcIdx];
-      }
-      if (targetFeat) {
-        targetFeat[i] = STAGE04_FEATURES[srcIdx];
-      }
-    }
-  },
+      // Positions
+      forms.stage01[i * 3]     = STAGE01_POSITIONS[srcIdx * 3];
+      forms.stage01[i * 3 + 1] = STAGE01_POSITIONS[srcIdx * 3 + 1];
+      forms.stage01[i * 3 + 2] = STAGE01_POSITIONS[srcIdx * 3 + 2];
 
-  // Abstract convergence fallback
-  convergence(count, target) {
-    for (let i = 0; i < count; i++) {
-      if (i % 4 < 2) {
-        const a = Math.random();
-        const strand = i % 2 === 0 ? 0 : Math.PI;
-        const angle = a * PI2 * 3.0 + strand;
-        const radius = 0.32 + Math.sin(a * PI2) * 0.07;
+      forms.stage02[i * 3]     = STAGE02_POSITIONS[srcIdx * 3];
+      forms.stage02[i * 3 + 1] = STAGE02_POSITIONS[srcIdx * 3 + 1];
+      forms.stage02[i * 3 + 2] = STAGE02_POSITIONS[srcIdx * 3 + 2];
 
-        target[i * 3] = Math.cos(angle) * radius + rand(-0.012, 0.012);
-        target[i * 3 + 1] = (a - 0.5) * 0.95;
-        target[i * 3 + 2] = Math.sin(angle) * radius + rand(-0.012, 0.012);
-      } else {
-        const side = Math.ceil(Math.sqrt(count / 2));
-        const u = ((i % side) / side - 0.5) * 1.35;
-        const v = (Math.floor(i / side) / side - 0.5) * 1.35;
-        const wave = Math.sin(u * 6.0) * 0.10 + Math.cos(v * 5.0) * 0.08;
+      forms.stage03[i * 3]     = STAGE03_POSITIONS[srcIdx * 3];
+      forms.stage03[i * 3 + 1] = STAGE03_POSITIONS[srcIdx * 3 + 1];
+      forms.stage03[i * 3 + 2] = STAGE03_POSITIONS[srcIdx * 3 + 2];
 
-        target[i * 3] = u;
-        target[i * 3 + 1] = wave - 0.28;
-        target[i * 3 + 2] = v;
-      }
+      forms.stage04[i * 3]     = STAGE04_POSITIONS[srcIdx * 3];
+      forms.stage04[i * 3 + 1] = STAGE04_POSITIONS[srcIdx * 3 + 1];
+      forms.stage04[i * 3 + 2] = STAGE04_POSITIONS[srcIdx * 3 + 2];
+
+      // Colors
+      colors.stage01[i * 3]     = STAGE01_COLORS[srcIdx * 3];
+      colors.stage01[i * 3 + 1] = STAGE01_COLORS[srcIdx * 3 + 1];
+      colors.stage01[i * 3 + 2] = STAGE01_COLORS[srcIdx * 3 + 2];
+
+      colors.stage02[i * 3]     = STAGE02_COLORS[srcIdx * 3];
+      colors.stage02[i * 3 + 1] = STAGE02_COLORS[srcIdx * 3 + 1];
+      colors.stage02[i * 3 + 2] = STAGE02_COLORS[srcIdx * 3 + 2];
+
+      colors.stage03[i * 3]     = STAGE03_COLORS[srcIdx * 3];
+      colors.stage03[i * 3 + 1] = STAGE03_COLORS[srcIdx * 3 + 1];
+      colors.stage03[i * 3 + 2] = STAGE03_COLORS[srcIdx * 3 + 2];
+
+      colors.stage04[i * 3]     = STAGE04_COLORS[srcIdx * 3];
+      colors.stage04[i * 3 + 1] = STAGE04_COLORS[srcIdx * 3 + 1];
+      colors.stage04[i * 3 + 2] = STAGE04_COLORS[srcIdx * 3 + 2];
+
+      lums[i] = STAGE_LUMS[srcIdx];
+      features[i] = STAGE_FEATURES[srcIdx];
     }
   }
 };
@@ -150,7 +100,10 @@ const vertexShader = `
   attribute vec3 aPos2;
   attribute vec3 aPos3;
   attribute vec3 aPos4;
-  attribute vec3 aColor;
+  attribute vec3 aCol1;
+  attribute vec3 aCol2;
+  attribute vec3 aCol3;
+  attribute vec3 aCol4;
   attribute float aFeature;
   attribute float aLum;
   attribute vec3 aSeed;
@@ -178,48 +131,57 @@ const vertexShader = `
   void main() {
     vLum = aLum;
     vSeed = aSeed.z;
-    vColor = aColor;
     vFeature = aFeature;
 
     float p = clamp(uScrollProgress, 0.0, 3.0);
     vec3 pFrom = aPos1;
     vec3 pTo = aPos2;
+    vec3 cFrom = aCol1;
+    vec3 cTo = aCol2;
     float tRaw = 0.0;
 
     if (p <= 1.0) {
       pFrom = aPos1;
       pTo = aPos2;
+      cFrom = aCol1;
+      cTo = aCol2;
       tRaw = p;
     } else if (p <= 2.0) {
       pFrom = aPos2;
       pTo = aPos3;
+      cFrom = aCol2;
+      cTo = aCol3;
       tRaw = p - 1.0;
     } else {
       pFrom = aPos3;
       pTo = aPos4;
+      cFrom = aCol3;
+      cTo = aCol4;
       tRaw = p - 2.0;
     }
 
     // Staggered organic departure based on individual particle seed
-    float order = aSeed.x * 0.28;
-    float raw = clamp((tRaw - order) / 0.72, 0.0, 1.0);
+    float order = aSeed.x * 0.25;
+    float raw = clamp((tRaw - order) / 0.75, 0.0, 1.0);
     float t = easeInOutCubic(raw);
     float flight = sin(t * 3.14159265);
 
     // Continuous 3D world-space position interpolation
     vec3 pos = mix(pFrom, pTo, t);
 
+    // Continuous 3D stage color interpolation
+    vColor = mix(cFrom, cTo, t);
+
     // Vapour-mist flight vortex during transitions
     vec3 flightDir = normalize(aSeed * 2.0 - 1.0 + 0.0001);
     pos += flightDir * flight * uSwirl;
 
-    // Subtle natural organic ambient breathing (attenuated when settled in Stage 04)
-    float breatheAtten = 1.0 - smoothstep(2.5, 3.0, p) * 0.75;
+    // Subtle natural organic ambient breathing
     pos += vec3(
-      sin(uTime * 0.55 + aSeed.y * 6.283) * 0.016,
-      cos(uTime * 0.50 + aSeed.z * 6.283) * 0.016,
-      sin(uTime * 0.45 + aSeed.x * 6.283) * 0.016
-    ) * breatheAtten;
+      sin(uTime * 0.55 + aSeed.y * 6.283) * 0.010,
+      cos(uTime * 0.50 + aSeed.z * 6.283) * 0.010,
+      sin(uTime * 0.45 + aSeed.x * 6.283) * 0.010
+    );
 
     // Perspective spatial rotation
     vec3 pRot = rotate3D(pos, uRotation);
@@ -260,7 +222,7 @@ const fragmentShader = `
   uniform vec3 uAccent;
   uniform vec3 uAccent2;
   uniform float uScrollProgress;
-  uniform int uColorMode; // 0: Natural Portrait, 1: Cyber Cyan, 2: 3D Depth Spectrum
+  uniform int uColorMode; // 0: Natural Evolving Palette, 1: Cyber Cyan, 2: 3D Depth Spectrum
 
   varying float vLum;
   varying float vSeed;
@@ -278,27 +240,22 @@ const fragmentShader = `
     cyberColor = mix(cyberColor, uAccent, step(0.970, vSeed));
     cyberColor = mix(cyberColor, uAccent2, step(0.992, vSeed));
 
-    // 2. Natural portrait palette with subtle lighting
+    // 2. Natural evolving portrait palette with subtle lighting
     vec3 naturalColor = vColor * (0.85 + 0.35 * vLum);
-    // Subtle cyber edge rim on a tiny fraction of hair/edge particles
-    naturalColor = mix(naturalColor, uAccent, step(0.985, vSeed) * 0.35);
+    naturalColor = mix(naturalColor, uAccent, step(0.985, vSeed) * 0.30);
 
-    // 3. 3D Depth False-Color Spectrum:
-    // Warm amber on nose and chin -> cyan on cheeks -> deep indigo on temples and neck
+    // 3. 3D Depth False-Color Spectrum
     float normDepth = clamp((vDepth + 0.45) / 0.90, 0.0, 1.0);
     vec3 depthColor = mix(vec3(0.08, 0.15, 0.85), vec3(0.0, 0.94, 1.0), smoothstep(0.15, 0.55, normDepth));
     depthColor = mix(depthColor, vec3(1.0, 0.78, 0.25), smoothstep(0.55, 0.90, normDepth));
-
-    // Morph transition into Stage 04
-    float faceMorph = smoothstep(2.1, 2.9, uScrollProgress);
 
     vec3 finalColor;
     if (uColorMode == 1) {
       finalColor = cyberColor;
     } else if (uColorMode == 2) {
-      finalColor = mix(cyberColor, depthColor, faceMorph);
+      finalColor = depthColor;
     } else {
-      finalColor = mix(cyberColor, naturalColor, faceMorph);
+      finalColor = naturalColor;
     }
 
     float mask = smoothstep(0.5, 0.18, d);
@@ -336,23 +293,26 @@ function initBackgroundEngine() {
 
   const COUNT = window.innerWidth < 768 ? 6000 : 12000;
 
-  // Initialize the 4 formations
+  // Initialize the 4 continuous facial evolution formations
   const forms = {
-    celestial: new Float32Array(COUNT * 3),
-    torus: new Float32Array(COUNT * 3),
-    cube: new Float32Array(COUNT * 3),
-    faceStage04: new Float32Array(COUNT * 3)
+    stage01: new Float32Array(COUNT * 3),
+    stage02: new Float32Array(COUNT * 3),
+    stage03: new Float32Array(COUNT * 3),
+    stage04: new Float32Array(COUNT * 3)
   };
 
-  const colors = new Float32Array(COUNT * 3);
+  const colors = {
+    stage01: new Float32Array(COUNT * 3),
+    stage02: new Float32Array(COUNT * 3),
+    stage03: new Float32Array(COUNT * 3),
+    stage04: new Float32Array(COUNT * 3)
+  };
+
   const features = new Float32Array(COUNT);
   const lums = new Float32Array(COUNT);
   const seeds = new Float32Array(COUNT * 3);
 
-  FormGenerators.celestial(COUNT, forms.celestial);
-  FormGenerators.torus(COUNT, forms.torus);
-  FormGenerators.cube(COUNT, forms.cube);
-  FormGenerators.faceStage04(COUNT, forms.faceStage04, colors, lums, features);
+  FormGenerators.populateEvolutionStages(COUNT, forms, colors, lums, features);
 
   for (let i = 0; i < COUNT * 3; i++) {
     seeds[i] = Math.random();
@@ -360,11 +320,14 @@ function initBackgroundEngine() {
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(COUNT * 3), 3));
-  geometry.setAttribute('aPos1', new THREE.BufferAttribute(forms.celestial, 3));
-  geometry.setAttribute('aPos2', new THREE.BufferAttribute(forms.torus, 3));
-  geometry.setAttribute('aPos3', new THREE.BufferAttribute(forms.cube, 3));
-  geometry.setAttribute('aPos4', new THREE.BufferAttribute(forms.faceStage04, 3));
-  geometry.setAttribute('aColor', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('aPos1', new THREE.BufferAttribute(forms.stage01, 3));
+  geometry.setAttribute('aPos2', new THREE.BufferAttribute(forms.stage02, 3));
+  geometry.setAttribute('aPos3', new THREE.BufferAttribute(forms.stage03, 3));
+  geometry.setAttribute('aPos4', new THREE.BufferAttribute(forms.stage04, 3));
+  geometry.setAttribute('aCol1', new THREE.BufferAttribute(colors.stage01, 3));
+  geometry.setAttribute('aCol2', new THREE.BufferAttribute(colors.stage02, 3));
+  geometry.setAttribute('aCol3', new THREE.BufferAttribute(colors.stage03, 3));
+  geometry.setAttribute('aCol4', new THREE.BufferAttribute(colors.stage04, 3));
   geometry.setAttribute('aFeature', new THREE.BufferAttribute(features, 1));
   geometry.setAttribute('aLum', new THREE.BufferAttribute(lums, 1));
   geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 3));
@@ -460,8 +423,8 @@ function initBackgroundEngine() {
       if (hudFps) hudFps.textContent = `${currentFps} FPS`;
       if (hudFrametime) hudFrametime.textContent = `${currentFrameDuration} ms`;
       if (hudCount) hudCount.textContent = `${COUNT.toLocaleString()}`;
-      // GPU Buffer VRAM: 12000 points * (4 pos*3*4 + col*3*4 + feat*4 + lum*4 + seed*3*4) = 960 KB
-      if (hudVram) hudVram.textContent = `${(COUNT * 80 / 1024).toFixed(0)} KB`;
+      // GPU Buffer VRAM: 12000 points * (4 pos*3*4 + 4 col*3*4 + feat*4 + lum*4 + seed*3*4) = 1,392 KB
+      if (hudVram) hudVram.textContent = `${(COUNT * 116 / 1024).toFixed(0)} KB`;
     }
 
     mouse.x += (mouse.targetX - mouse.x) * 0.1;
@@ -478,40 +441,33 @@ function initBackgroundEngine() {
       currentScrollProgress += (targetScrollProgress - currentScrollProgress) * 0.085;
       uniforms.uScrollProgress.value = currentScrollProgress;
 
-      const isStage4 = currentScrollProgress >= 2.45;
       const cx = vw * 0.5;
-      const cy = isStage4 ? vh * 0.40 : vh * 0.44;
-      const size = Math.min(vh * (isStage4 ? 0.74 : 0.66), vw * (isStage4 ? 0.65 : 0.58));
+      const cy = vh * 0.40;
+      const size = Math.min(vh * 0.74, vw * 0.65);
       uniforms.uFrame.value.set(cx, cy, size, 1.0);
 
+      // Facial Evolution View Controls across all 4 stages
       let rotX, rotY;
-      if (isStage4) {
-        // Stage 04: Facial Reconstruction View Controls
-        if (anglePreset === 'front') {
-          rotX = 0.06 + mouse.curNormY * 0.08;
-          rotY = 0.0 + mouse.curNormX * 0.10;
-        } else if (anglePreset === 'left') {
-          rotX = 0.06 + mouse.curNormY * 0.08;
-          rotY = 0.436 + mouse.curNormX * 0.10; // +25 degrees
-        } else if (anglePreset === 'right') {
-          rotX = 0.06 + mouse.curNormY * 0.08;
-          rotY = -0.436 + mouse.curNormX * 0.10; // -25 degrees
-        } else {
-          // Free Orbit
-          rotX = 0.06 + mouse.curNormY * 0.45;
-          rotY = mouse.curNormX * 0.75;
-        }
+      if (anglePreset === 'front') {
+        rotX = 0.06 + mouse.curNormY * 0.08;
+        rotY = 0.0 + mouse.curNormX * 0.10;
+      } else if (anglePreset === 'left') {
+        rotX = 0.06 + mouse.curNormY * 0.08;
+        rotY = 0.436 + mouse.curNormX * 0.10; // +25 degrees
+      } else if (anglePreset === 'right') {
+        rotX = 0.06 + mouse.curNormY * 0.08;
+        rotY = -0.436 + mouse.curNormX * 0.10; // -25 degrees
       } else {
-        // Chapters 1-3: Ambient Continuous Orbit
-        rotX = 0.22 + mouse.curNormY * 0.35;
-        rotY = time * 0.12 + mouse.curNormX * 0.45;
+        // Free Orbit
+        rotX = 0.06 + mouse.curNormY * 0.45;
+        rotY = mouse.curNormX * 0.75;
       }
       uniforms.uRotation.value.set(rotX, rotY);
 
       uniforms.uAlpha.value = 0.94;
-      uniforms.uDot.value = isStage4 ? 2.6 : 2.4;
-      uniforms.uMouseForce.value = isStage4 ? 0.45 : 1.0;
-      uniforms.uSwirl.value = 0.24;
+      uniforms.uDot.value = 2.5;
+      uniforms.uMouseForce.value = 0.45;
+      uniforms.uSwirl.value = 0.22;
 
       // Synchronize Chapter text and dot indicators
       const newActiveIdx = Math.round(currentScrollProgress);
