@@ -142,7 +142,7 @@ const FormGenerators = {
 };
 
 // ==========================================================================
-// 2. GLSL SHADER DEFINITIONS FOR RESTRAINED BACKGROUND DEPTH
+// 2. GLSL SHADER DEFINITIONS FOR DUAL-MODE 3D ENGINE
 // ==========================================================================
 const vertexShader = `
   uniform vec4 uFrom;       // cx, cy, size px, kind
@@ -154,8 +154,9 @@ const vertexShader = `
   uniform float uDot;
   uniform vec2 uViewport;
   uniform vec2 uMouse;
+  uniform float uMouseForce;
   uniform float uSwirl;
-  uniform float uMist;
+  uniform float uAlpha;
 
   attribute vec3 aFrom;
   attribute vec3 aTo;
@@ -184,7 +185,7 @@ const vertexShader = `
     p.z = min(p.z, CAMERA - 0.3);
     float persp = CAMERA / (CAMERA - p.z);
     vec2 screen = frame.xy + vec2(p.x, -p.y) * persp * frame.z;
-    float shade = clamp(0.5 + p.z * 1.2, 0.2, 1.0);
+    float shade = clamp(0.5 + p.z * 1.2, 0.25, 1.0);
     return vec4(screen, uDot * (0.6 + aSeed.y * 0.8) * persp, shade);
   }
 
@@ -207,8 +208,16 @@ const vertexShader = `
     float size = mix(a.z, b.z, t);
     float alpha = mix(a.w, b.w, t);
 
-    // Subtle drift
-    screen += vec2(sin(uTime * 0.6 + aSeed.y * 6.283), cos(uTime * 0.5 + aSeed.z * 6.283)) * 1.2;
+    // Subtle natural organic drift
+    screen += vec2(sin(uTime * 0.6 + aSeed.y * 6.283), cos(uTime * 0.5 + aSeed.z * 6.283)) * 1.4;
+
+    // Interactive Mouse Repulsion & Swirl
+    vec2 mouseOffset = screen - uMouse;
+    float mouseDist = length(mouseOffset);
+    if (mouseDist < 220.0 && mouseDist > 0.1) {
+      float repel = (1.0 - mouseDist / 220.0);
+      screen += normalize(mouseOffset) * repel * repel * 38.0 * uMouseForce;
+    }
 
     // Convert to WebGL NDC
     gl_Position = vec4(
@@ -218,8 +227,8 @@ const vertexShader = `
       1.0
     );
 
-    vAlpha = alpha * 0.45; // Restrained background opacity
-    gl_PointSize = size * 1.2;
+    vAlpha = alpha * uAlpha;
+    gl_PointSize = size * 1.25;
   }
 `;
 
@@ -235,20 +244,20 @@ const fragmentShader = `
     if (d > 0.5) discard;
 
     vec3 color = uColor * (0.35 + 0.65 * vLum);
-    // Subtle cyan accent on ~1.5% of stars
-    color = mix(color, uAccent, step(0.985, vSeed));
+    // Cyan accent on ~2.5% of stars
+    color = mix(color, uAccent, step(0.975, vSeed));
 
-    float mask = smoothstep(0.5, 0.25, d);
+    float mask = smoothstep(0.5, 0.22, d);
     gl_FragColor = vec4(color, mask * vAlpha);
   }
 `;
 
 // ==========================================================================
-// 3. BACKGROUND 3D ENGINE INITIALIZATION
+// 3. BACKGROUND & 3D JOURNEY WEBGL ENGINE
 // ==========================================================================
 function initBackgroundEngine() {
   const canvas = document.getElementById('webgl-canvas');
-  if (!canvas) return;
+  if (!canvas) return null;
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -265,9 +274,10 @@ function initBackgroundEngine() {
 
   const COUNT = window.innerWidth < 768 ? 6000 : 12000;
 
-  // Initialize shapes
+  // Initialize distinct 3D forms
   const forms = {
     celestial: new Float32Array(COUNT * 3),
+    torus: new Float32Array(COUNT * 3),
     cube: new Float32Array(COUNT * 3),
     helix: new Float32Array(COUNT * 3),
     wave: new Float32Array(COUNT * 3),
@@ -275,6 +285,7 @@ function initBackgroundEngine() {
   };
 
   FormGenerators.celestial(COUNT, forms.celestial);
+  FormGenerators.torus(COUNT, forms.torus);
   FormGenerators.cube(COUNT, forms.cube);
   FormGenerators.helix(COUNT, forms.helix);
   FormGenerators.wave(COUNT, forms.wave);
@@ -310,8 +321,9 @@ function initBackgroundEngine() {
     uDot: { value: 1.8 },
     uViewport: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
     uMouse: { value: new THREE.Vector2(-999, -999) },
+    uMouseForce: { value: 0.2 },
     uSwirl: { value: 0.14 },
-    uMist: { value: 0 },
+    uAlpha: { value: 0.45 },
     uColor: { value: new THREE.Color('#94a3b8') },
     uAccent: { value: new THREE.Color('#00f0ff') }
   };
@@ -328,6 +340,7 @@ function initBackgroundEngine() {
   pointsMesh.frustumCulled = false;
   scene.add(pointsMesh);
 
+  // Site Mode Scroll Sections
   const sections = [
     { id: '#hero', form: 'celestial', tilt: 0.1, spin: 0.05 },
     { id: '#projects', form: 'cube', tilt: 0.55, spin: 0.2 },
@@ -336,44 +349,150 @@ function initBackgroundEngine() {
     { id: '#contact', form: 'name', tilt: 0, spin: 0 }
   ];
 
-  let clock = new THREE.Clock();
+  // 3D Journey Chapters: 1: Celestial, 2: Torus, 3: Cube, 4: Name
+  const chapterForms = ['celestial', 'torus', 'cube', 'name'];
+
+  let currentMode = 'site';
+  let storyChapter = 1;
+  let isTransitioning = false;
+  let transitionProgress = 0;
+  const transitionDuration = 1100;
+  let transitionStartTime = 0;
+  let fromFormName = 'celestial';
+  let toFormName = 'celestial';
+
   let currentFromIdx = 0;
   let currentToIdx = 1;
+
+  // Mouse State for smooth steering and parallax
+  const mouse = {
+    targetX: window.innerWidth / 2,
+    targetY: window.innerHeight / 2,
+    x: window.innerWidth / 2,
+    y: window.innerHeight / 2,
+    normX: 0,
+    normY: 0
+  };
+
+  window.addEventListener('mousemove', (e) => {
+    mouse.targetX = e.clientX;
+    mouse.targetY = e.clientY;
+    mouse.normX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.normY = -(e.clientY / window.innerHeight) * 2 + 1;
+  }, { passive: true });
+
+  let clock = new THREE.Clock();
+
+  function triggerChapterTransition(targetChapter) {
+    if (targetChapter < 1 || targetChapter > 4) return;
+    const fromName = chapterForms[storyChapter - 1];
+    const toName = chapterForms[targetChapter - 1];
+
+    fromFormName = fromName;
+    toFormName = toName;
+    storyChapter = targetChapter;
+
+    geometry.attributes.aFrom.array.set(forms[fromName]);
+    geometry.attributes.aTo.array.set(forms[toName]);
+    geometry.attributes.aFrom.needsUpdate = true;
+    geometry.attributes.aTo.needsUpdate = true;
+
+    isTransitioning = true;
+    transitionStartTime = performance.now();
+    transitionProgress = 0;
+
+    // Synchronize DOM UI elements
+    document.querySelectorAll('.story-chapter').forEach((ch) => {
+      ch.classList.toggle('active-chapter', ch.getAttribute('data-chapter') === String(targetChapter));
+    });
+    document.querySelectorAll('.story-dot').forEach((dot) => {
+      dot.classList.toggle('active', dot.getAttribute('data-index') === String(targetChapter));
+    });
+
+    playStoryTone(280 + targetChapter * 110);
+  }
 
   function render() {
     requestAnimationFrame(render);
     const time = clock.getElapsedTime();
-    const scrollY = window.scrollY;
     const vh = window.innerHeight;
     const vw = window.innerWidth;
 
-    const totalHeight = document.documentElement.scrollHeight - vh;
-    const scrollProgress = totalHeight > 0 ? scrollY / totalHeight : 0;
-    const sectionIndex = scrollProgress * (sections.length - 1);
-    const fromIdx = Math.floor(sectionIndex);
-    const toIdx = Math.min(sections.length - 1, fromIdx + 1);
-    const mixRatio = sectionIndex - fromIdx;
-
-    if (fromIdx !== currentFromIdx || toIdx !== currentToIdx) {
-      currentFromIdx = fromIdx;
-      currentToIdx = toIdx;
-
-      geometry.attributes.aFrom.array.set(forms[sections[fromIdx].form]);
-      geometry.attributes.aTo.array.set(forms[sections[toIdx].form]);
-      geometry.attributes.aFrom.needsUpdate = true;
-      geometry.attributes.aTo.needsUpdate = true;
-    }
-
-    // Set Placement Frames in background
-    uniforms.uFrom.value.set(vw * 0.5, vh * 0.5, Math.min(vh * 0.7, vw * 0.7), 1);
-    uniforms.uTo.value.set(vw * 0.5, vh * 0.5, Math.min(vh * 0.7, vw * 0.7), 1);
-
-    uniforms.uFromRot.value.set(sections[fromIdx].tilt, time * sections[fromIdx].spin);
-    uniforms.uToRot.value.set(sections[toIdx].tilt, time * sections[toIdx].spin);
-
-    uniforms.uMix.value = mixRatio;
+    // Smooth mouse lerp
+    mouse.x += (mouse.targetX - mouse.x) * 0.08;
+    mouse.y += (mouse.targetY - mouse.y) * 0.08;
+    uniforms.uMouse.value.set(mouse.x, mouse.y);
     uniforms.uTime.value = time;
     uniforms.uViewport.value.set(vw, vh);
+
+    if (currentMode === 'story') {
+      // --- 3D JOURNEY MODE ---
+      if (isTransitioning) {
+        const elapsed = performance.now() - transitionStartTime;
+        transitionProgress = Math.min(elapsed / transitionDuration, 1.0);
+        uniforms.uMix.value = transitionProgress;
+        uniforms.uSwirl.value = 0.28;
+
+        if (transitionProgress >= 1.0) {
+          isTransitioning = false;
+          geometry.attributes.aFrom.array.set(forms[toFormName]);
+          geometry.attributes.aFrom.needsUpdate = true;
+          uniforms.uMix.value = 0.0;
+          uniforms.uSwirl.value = 0.12;
+        }
+      } else {
+        uniforms.uMix.value = 0.0;
+        uniforms.uSwirl.value = 0.12;
+      }
+
+      const centerX = vw * 0.5;
+      const centerY = vh * 0.44;
+      const scale = toFormName === 'name' ? Math.min(vh * 0.55, vw * 0.85) : Math.min(vh * 0.65, vw * 0.55);
+
+      uniforms.uFrom.value.set(centerX, centerY, scale, 1);
+      uniforms.uTo.value.set(centerX, centerY, scale, 1);
+
+      // Interactive 3D tilt & rotation steered by mouse
+      const rotTiltX = 0.2 + mouse.normY * 0.35;
+      const rotTiltY = time * 0.15 + mouse.normX * 0.45;
+
+      uniforms.uFromRot.value.set(rotTiltX, rotTiltY);
+      uniforms.uToRot.value.set(rotTiltX, rotTiltY);
+
+      uniforms.uAlpha.value = 0.95;
+      uniforms.uDot.value = 2.4;
+      uniforms.uMouseForce.value = 1.0;
+    } else {
+      // --- SITE EXPERIENCE MODE ---
+      const scrollY = window.scrollY;
+      const totalHeight = document.documentElement.scrollHeight - vh;
+      const scrollProgress = totalHeight > 0 ? scrollY / totalHeight : 0;
+      const sectionIndex = scrollProgress * (sections.length - 1);
+      const fromIdx = Math.floor(sectionIndex);
+      const toIdx = Math.min(sections.length - 1, fromIdx + 1);
+      const mixRatio = sectionIndex - fromIdx;
+
+      if (fromIdx !== currentFromIdx || toIdx !== currentToIdx) {
+        currentFromIdx = fromIdx;
+        currentToIdx = toIdx;
+
+        geometry.attributes.aFrom.array.set(forms[sections[fromIdx].form]);
+        geometry.attributes.aTo.array.set(forms[sections[toIdx].form]);
+        geometry.attributes.aFrom.needsUpdate = true;
+        geometry.attributes.aTo.needsUpdate = true;
+      }
+
+      uniforms.uFrom.value.set(vw * 0.5, vh * 0.5, Math.min(vh * 0.7, vw * 0.7), 1);
+      uniforms.uTo.value.set(vw * 0.5, vh * 0.5, Math.min(vh * 0.7, vw * 0.7), 1);
+
+      uniforms.uFromRot.value.set(sections[fromIdx].tilt, time * sections[fromIdx].spin);
+      uniforms.uToRot.value.set(sections[toIdx].tilt, time * sections[toIdx].spin);
+
+      uniforms.uMix.value = mixRatio;
+      uniforms.uAlpha.value = 0.42;
+      uniforms.uDot.value = 1.8;
+      uniforms.uMouseForce.value = 0.2;
+    }
 
     renderer.render(scene, camera);
   }
@@ -384,13 +503,65 @@ function initBackgroundEngine() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
     uniforms.uViewport.value.set(window.innerWidth, window.innerHeight);
   });
+
+  return {
+    setMode(mode) {
+      currentMode = mode;
+      if (mode === 'story') {
+        triggerChapterTransition(1);
+      }
+    },
+    goToChapter(ch) {
+      triggerChapterTransition(ch);
+    },
+    nextChapter() {
+      let next = storyChapter + 1;
+      if (next > 4) next = 1;
+      triggerChapterTransition(next);
+    },
+    prevChapter() {
+      let prev = storyChapter - 1;
+      if (prev < 1) prev = 4;
+      triggerChapterTransition(prev);
+    },
+    getChapter() {
+      return storyChapter;
+    }
+  };
 }
 
 // ==========================================================================
-// 4. ATMOSPHERIC SOUNDTRACK & AMBIENT AUDIO SYSTEM (EPIC ODYSSEY SCORE)
+// 4. ATMOSPHERIC SOUNDTRACK & PROCEDURAL AUDIO SYSTEM
 // ==========================================================================
 let audioTrack = null;
 let soundEnabled = false;
+let storyToneCtx = null;
+
+function playStoryTone(freq = 440) {
+  try {
+    if (!storyToneCtx) {
+      storyToneCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (storyToneCtx.state === 'suspended') {
+      storyToneCtx.resume();
+    }
+    const osc = storyToneCtx.createOscillator();
+    const gain = storyToneCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, storyToneCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.35, storyToneCtx.currentTime + 0.12);
+
+    gain.gain.setValueAtTime(0.035, storyToneCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, storyToneCtx.currentTime + 0.12);
+
+    osc.connect(gain);
+    gain.connect(storyToneCtx.destination);
+    osc.start();
+    osc.stop(storyToneCtx.currentTime + 0.12);
+  } catch (e) {
+    // Audio context may await user gesture
+  }
+}
 
 function initAudioSystem() {
   const audioBtn = document.getElementById('audio-toggle');
@@ -447,37 +618,108 @@ function initAudioSystem() {
 }
 
 // ==========================================================================
-// 5. SITE VIEW VS 3D JOURNEY MODE SWITCHER
+// 5. SITE VIEW VS 3D JOURNEY MODE SWITCHER & STORY CONTROLS
 // ==========================================================================
-function initModeSwitcher() {
+function initModeSwitcher(engine) {
   const siteView = document.getElementById('site-view');
   const storyView = document.getElementById('story-view');
   const btnSite = document.getElementById('btn-mode-site');
   const btnStory = document.getElementById('btn-mode-story');
   const btnStorySwitch = document.getElementById('btn-story-switch');
+  const btnStoryContact = document.getElementById('btn-story-contact');
+
+  const storyPrev = document.getElementById('story-prev');
+  const storyNext = document.getElementById('story-next');
+  const storyDots = document.querySelectorAll('.story-dot');
+
+  let activeMode = 'site';
 
   function setMode(mode) {
+    activeMode = mode;
     if (mode === 'site') {
       btnSite?.classList.add('active');
       btnStory?.classList.remove('active');
       siteView?.classList.remove('hidden-view');
       storyView?.classList.add('hidden-view');
+      document.body.classList.remove('mode-story');
       document.body.style.overflow = 'auto';
       window.history.replaceState(null, '', '?v=site');
+      engine?.setMode('site');
     } else {
       btnStory?.classList.add('active');
       btnSite?.classList.remove('active');
       siteView?.classList.add('hidden-view');
       storyView?.classList.remove('hidden-view');
+      document.body.classList.add('mode-story');
       document.body.style.overflow = 'hidden';
       window.history.replaceState(null, '', '?v=story');
+      engine?.setMode('story');
     }
   }
 
   btnSite?.addEventListener('click', () => setMode('site'));
   btnStory?.addEventListener('click', () => setMode('story'));
   btnStorySwitch?.addEventListener('click', () => setMode('site'));
+  btnStoryContact?.addEventListener('click', (e) => {
+    e.preventDefault();
+    setMode('site');
+    setTimeout(() => {
+      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  });
 
+  // Story Next / Prev Controls
+  storyPrev?.addEventListener('click', () => engine?.prevChapter());
+  storyNext?.addEventListener('click', () => engine?.nextChapter());
+
+  storyDots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const idx = parseInt(dot.getAttribute('data-index'), 10);
+      if (!isNaN(idx)) engine?.goToChapter(idx);
+    });
+  });
+
+  // Keyboard navigation for 3D Journey
+  window.addEventListener('keydown', (e) => {
+    if (activeMode !== 'story') return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      engine?.nextChapter();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      engine?.prevChapter();
+    }
+  });
+
+  // Mouse Wheel navigation (debounced)
+  let lastWheelTime = 0;
+  window.addEventListener('wheel', (e) => {
+    if (activeMode !== 'story') return;
+    if (Date.now() - lastWheelTime < 650) return;
+    if (e.deltaY > 25) {
+      lastWheelTime = Date.now();
+      engine?.nextChapter();
+    } else if (e.deltaY < -25) {
+      lastWheelTime = Date.now();
+      engine?.prevChapter();
+    }
+  }, { passive: true });
+
+  // Touch Swipe navigation
+  let touchY = 0;
+  window.addEventListener('touchstart', (e) => {
+    if (activeMode !== 'story') return;
+    touchY = e.touches[0].clientY;
+  }, { passive: true });
+
+  window.addEventListener('touchend', (e) => {
+    if (activeMode !== 'story') return;
+    const dy = e.changedTouches[0].clientY - touchY;
+    if (dy < -45) engine?.nextChapter();
+    else if (dy > 45) engine?.prevChapter();
+  }, { passive: true });
+
+  // URL Initial State Detection
   const params = new URLSearchParams(window.location.search);
   if (params.get('v') === 'story') {
     setMode('story');
@@ -565,8 +807,8 @@ function initUIControls() {
 // ==========================================================================
 // BOOTSTRAP APPLICATION
 // ==========================================================================
-initBackgroundEngine();
+const engine = initBackgroundEngine();
 initPortraitReveal();
 initAudioSystem();
-initModeSwitcher();
+initModeSwitcher(engine);
 initUIControls();
