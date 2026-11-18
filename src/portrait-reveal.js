@@ -62,7 +62,7 @@ export function initPortraitReveal() {
   function buildParticles(image) {
     const offscreen = document.createElement('canvas');
     // Sample at comfortable resolution for smooth 60fps
-    const sampleW = 240;
+    const sampleW = 280;
     const sampleH = Math.round(sampleW * (height / width));
     offscreen.width = sampleW;
     offscreen.height = sampleH;
@@ -128,7 +128,7 @@ export function initPortraitReveal() {
   // 2. Event Listeners for Cursor Interaction
   stage.addEventListener('mouseenter', (e) => {
     mouse.isInside = true;
-    mouse.targetRadius = 155; // Spotlight radius
+    mouse.targetRadius = 180; // Large generous spotlight radius
     mouse.targetOpacity = 1;
 
     const rect = stage.getBoundingClientRect();

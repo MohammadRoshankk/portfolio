@@ -416,54 +416,101 @@ body.loading {
   padding-bottom: 6rem;
 }
 
-.hero-container {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+.hero-section.centered-hero {
+  padding-top: 7rem;
+  padding-bottom: 5rem;
+}
+
+.hero-center-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 3.5rem;
+  text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
-@media (max-width: 960px) {
-  .hero-container {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-  }
+.hero-top-info {
+  margin-bottom: 1.5rem;
 }
 
-.hero-visual {
+.hero-title-centered {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  max-width: 900px;
+}
+
+.hero-central-visual {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  width: 100%;
+  margin-bottom: 2.75rem;
+}
+
+.hero-bottom-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.hero-desc-centered {
+  text-align: center;
+  margin-bottom: 2.25rem;
+  font-size: 1.2rem;
+}
+
+.hero-actions-centered {
+  justify-content: center;
+  margin-bottom: 3.5rem;
+}
+
+.hero-scroll-centered {
+  justify-content: center;
 }
 
 /* ==========================================================================
    PORTRAIT EXPERIENCE (Codrops / Phantom.land / Max Inspired Spotlight)
-   Occupies ~40-45% of Hero Width with subtle darkened base, ambient glow,
+   Centralized Big Hero Stage with subtle darkened base, ambient glow,
    interactive cursor-controlled circular spotlight and dispersing particles.
    ========================================================================== */
 .portrait-stage {
   position: relative;
   width: 100%;
-  max-width: 480px;
-  aspect-ratio: 1 / 1.18;
-  border-radius: 32px;
+  max-width: 580px;
+  aspect-ratio: 1 / 1.15;
+  border-radius: 36px;
   overflow: hidden;
   background: #08080c;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 
-    0 30px 60px -15px rgba(0, 0, 0, 0.95),
-    0 0 60px rgba(0, 240, 255, 0.12);
+    0 35px 80px -15px rgba(0, 0, 0, 0.95),
+    0 0 80px rgba(0, 240, 255, 0.16);
   cursor: crosshair;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.portrait-stage.big-stage {
+  max-width: 580px;
+}
+
+@media (min-width: 1200px) {
+  .portrait-stage.big-stage {
+    max-width: 620px;
+  }
 }
 
 .portrait-stage:hover {
-  border-color: rgba(0, 240, 255, 0.4);
+  border-color: rgba(0, 240, 255, 0.5);
   box-shadow: 
-    0 35px 70px -15px rgba(0, 0, 0, 0.95),
-    0 0 80px rgba(0, 240, 255, 0.2);
+    0 40px 90px -15px rgba(0, 0, 0, 0.98),
+    0 0 100px rgba(0, 240, 255, 0.25);
+  transform: translateY(-2px);
 }
 
 /* Ambient Soft Cyan Backlight Glow */
