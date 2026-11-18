@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="32" viewBox="0 0 140 32" fill="none">
+  <path d="M10 5L12.4 12.6L20 15L12.4 17.4L10 25L7.6 17.4L0 15L7.6 12.6L10 5Z" fill="#00f0ff"/>
+  <text x="28" y="21" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" font-weight="700" letter-spacing="1.5">ROSHAN</text>
+  <rect x="98" y="8" width="40" height="15" rx="3" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <text x="103" y="19" fill="#a1a1aa" font-family="'Space Mono', monospace" font-size="8.5" font-weight="700" letter-spacing="1">AI/DATA</text>
+</svg>

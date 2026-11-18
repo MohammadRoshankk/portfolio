@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480" fill="none">
+  <rect width="800" height="480" rx="16" fill="#0d0d12"/>
+  <rect x="0.5" y="0.5" width="799" height="479" rx="15.5" stroke="rgba(255,255,255,0.08)"/>
+
+  <!-- Top bar -->
+  <rect x="24" y="24" width="752" height="48" rx="10" fill="#14141c" stroke="rgba(255,255,255,0.05)"/>
+  <circle cx="50" cy="48" r="5" fill="#ef4444" opacity="0.8"/>
+  <circle cx="66" cy="48" r="5" fill="#f59e0b" opacity="0.8"/>
+  <circle cx="82" cy="48" r="5" fill="#10b981" opacity="0.8"/>
+  <text x="110" y="53" fill="#a1a1aa" font-family="'Space Mono', monospace" font-size="12">cosmoshift / telos — habit &amp; journaling v1.8</text>
+  <rect x="630" y="36" width="130" height="24" rx="12" fill="rgba(139, 92, 246, 0.1)" stroke="rgba(139, 92, 246, 0.25)"/>
+  <text x="648" y="52" fill="#c084fc" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600">● PUBLISHED APP</text>
+
+  <!-- Left: Mobile Frame Mockup -->
+  <g transform="translate(48, 88)">
+    <rect width="210" height="368" rx="28" fill="#14141e" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+    <!-- Phone screen -->
+    <rect x="10" y="10" width="190" height="348" rx="20" fill="#09090f"/>
+    <!-- Dynamic island notch -->
+    <rect x="70" y="18" width="70" height="14" rx="7" fill="#000000"/>
+    
+    <!-- Screen content -->
+    <text x="24" y="58" fill="#71717a" font-family="'Space Mono', monospace" font-size="9">TODAY'S INTENTION</text>
+    <text x="24" y="78" fill="#ffffff" font-family="'Syne', sans-serif" font-size="15" font-weight="700">Deep Work &amp; Focus</text>
+
+    <!-- Streak circle -->
+    <circle cx="105" cy="140" r="42" fill="none" stroke="#262635" stroke-width="6"/>
+    <circle cx="105" cy="140" r="42" fill="none" stroke="#00f0ff" stroke-width="6" stroke-dasharray="264" stroke-dashoffset="66" stroke-linecap="round"/>
+    <text x="105" y="138" text-anchor="middle" fill="#ffffff" font-family="'Syne', sans-serif" font-size="22" font-weight="800">42</text>
+    <text x="105" y="154" text-anchor="middle" fill="#71717a" font-family="'Space Mono', monospace" font-size="8">DAY STREAK</text>
+
+    <!-- Habits -->
+    <rect x="22" y="200" width="166" height="34" rx="8" fill="#181824"/>
+    <circle cx="38" cy="217" r="7" fill="#10b981"/>
+    <text x="54" y="221" fill="#e4e4e7" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="600">Morning Meditation</text>
+
+    <rect x="22" y="242" width="166" height="34" rx="8" fill="#181824"/>
+    <circle cx="38" cy="259" r="7" fill="#00f0ff"/>
+    <text x="54" y="263" fill="#e4e4e7" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="600">Write 500 Words</text>
+
+    <rect x="22" y="284" width="166" height="34" rx="8" fill="#181824"/>
+    <circle cx="38" cy="301" r="7" fill="#8b5cf6"/>
+    <text x="54" y="305" fill="#e4e4e7" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="600">System Architecture</text>
+  </g>
+
+  <!-- Right: Architecture Details -->
+  <rect x="280" y="88" width="496" height="368" rx="12" fill="#121218" stroke="rgba(255,255,255,0.04)"/>
+  <text x="304" y="122" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" font-weight="700">Offline-First Local Synchronization Engine</text>
+  <text x="304" y="142" fill="#71717a" font-family="'Plus Jakarta Sans', sans-serif" font-size="12">End-to-end encrypted daily logs with SQLite &amp; Cloudflare edge resolution</text>
+
+  <rect x="304" y="170" width="448" height="76" rx="8" fill="#181822"/>
+  <text x="320" y="196" fill="#a1a1aa" font-family="'Space Mono', monospace" font-size="11">CRDT CONFLICT RESOLUTION</text>
+  <text x="320" y="218" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-size="12">State merges without server clock dependency. Zero data loss across multi-device sync.</text>
+
+  <!-- Analytics metrics -->
+  <rect x="304" y="262" width="140" height="84" rx="8" fill="#181822"/>
+  <text x="320" y="290" fill="#71717a" font-family="'Space Mono', monospace" font-size="10">USER RETENTION</text>
+  <text x="320" y="324" fill="#10b981" font-family="'Syne', sans-serif" font-size="22" font-weight="800">76.4%</text>
+
+  <rect x="458" y="262" width="140" height="84" rx="8" fill="#181822"/>
+  <text x="474" y="290" fill="#71717a" font-family="'Space Mono', monospace" font-size="10">APP STORE RATING</text>
+  <text x="474" y="324" fill="#00f0ff" font-family="'Syne', sans-serif" font-size="22" font-weight="800">4.9 ★</text>
+
+  <rect x="612" y="262" width="140" height="84" rx="8" fill="#181822"/>
+  <text x="628" y="290" fill="#71717a" font-family="'Space Mono', monospace" font-size="10">SYNC LATENCY</text>
+  <text x="628" y="324" fill="#ffffff" font-family="'Syne', sans-serif" font-size="22" font-weight="800">&lt; 18ms</text>
+
+  <rect x="304" y="362" width="448" height="70" rx="8" fill="rgba(139, 92, 246, 0.06)" stroke="rgba(139, 92, 246, 0.2)"/>
+  <text x="320" y="388" fill="#c084fc" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="600">Built for Cosmoshift Brand</text>
+  <text x="320" y="410" fill="#a1a1aa" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">Production mobile application published on Google Play with active daily users.</text>
+</svg>

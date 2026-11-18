@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480" fill="none">
+  <rect width="800" height="480" rx="16" fill="#0d0d12"/>
+  <rect x="0.5" y="0.5" width="799" height="479" rx="15.5" stroke="rgba(255,255,255,0.08)"/>
+
+  <!-- Top bar -->
+  <rect x="24" y="24" width="752" height="48" rx="10" fill="#14141c" stroke="rgba(255,255,255,0.05)"/>
+  <circle cx="50" cy="48" r="5" fill="#ef4444" opacity="0.8"/>
+  <circle cx="66" cy="48" r="5" fill="#f59e0b" opacity="0.8"/>
+  <circle cx="82" cy="48" r="5" fill="#10b981" opacity="0.8"/>
+  <text x="110" y="53" fill="#a1a1aa" font-family="'Space Mono', monospace" font-size="12">local-agent / semantic-rag-orchestrator</text>
+  <rect x="620" y="36" width="140" height="24" rx="12" fill="rgba(16, 185, 129, 0.1)" stroke="rgba(16, 185, 129, 0.25)"/>
+  <text x="635" y="52" fill="#10b981" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600">● LOCAL RAG READY</text>
+
+  <!-- Left: Knowledge Graph Nodes -->
+  <rect x="24" y="88" width="420" height="368" rx="12" fill="#121218" stroke="rgba(255,255,255,0.04)"/>
+  <text x="48" y="122" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" font-weight="700">Semantic Graph &amp; Document Embeddings</text>
+  
+  <!-- Graph Visualization Lines -->
+  <line x1="120" y1="220" x2="230" y2="180" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <line x1="230" y1="180" x2="340" y2="230" stroke="#00f0ff" stroke-width="1.5"/>
+  <line x1="230" y1="180" x2="210" y2="310" stroke="#8b5cf6" stroke-width="1.5"/>
+  <line x1="120" y1="220" x2="210" y2="310" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <line x1="340" y1="230" x2="210" y2="310" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+  <!-- Nodes -->
+  <circle cx="230" cy="180" r="28" fill="#181824" stroke="#00f0ff" stroke-width="2"/>
+  <text x="230" y="184" text-anchor="middle" fill="#00f0ff" font-family="'Space Mono', monospace" font-size="10" font-weight="700">CORE</text>
+
+  <circle cx="120" cy="220" r="22" fill="#181824" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="120" y="224" text-anchor="middle" fill="#93c5fd" font-family="'Space Mono', monospace" font-size="9">PAPERS</text>
+
+  <circle cx="340" cy="230" r="24" fill="#181824" stroke="#10b981" stroke-width="1.5"/>
+  <text x="340" y="234" text-anchor="middle" fill="#6ee7b7" font-family="'Space Mono', monospace" font-size="9">NOTES</text>
+
+  <circle cx="210" cy="310" r="22" fill="#181824" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="210" y="314" text-anchor="middle" fill="#c4b5fd" font-family="'Space Mono', monospace" font-size="9">TASKS</text>
+
+  <rect x="48" y="380" width="372" height="54" rx="8" fill="#181822"/>
+  <text x="64" y="402" fill="#a1a1aa" font-family="'Space Mono', monospace" font-size="11">Top Match: "Qdrant HNSW indexing latency"</text>
+  <text x="64" y="420" fill="#00f0ff" font-family="'Space Mono', monospace" font-size="10">Cosine similarity: 0.942 | Time: 8.4ms</text>
+
+  <!-- Right: Assistant Reasoning Stream -->
+  <rect x="460" y="88" width="316" height="368" rx="12" fill="#121218" stroke="rgba(255,255,255,0.04)"/>
+  <text x="480" y="122" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700">Agent Reasoning Step</text>
+
+  <rect x="480" y="145" width="276" height="70" rx="8" fill="#181822"/>
+  <text x="496" y="170" fill="#a1a1aa" font-family="'Space Mono', monospace" font-size="10">THOUGHT CHAIN:</text>
+  <text x="496" y="192" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5">Query decomposed into 2 sub-vectors across code repository and markdown documentation.</text>
+
+  <rect x="480" y="228" width="276" height="120" rx="8" fill="#181822"/>
+  <text x="496" y="252" fill="#10b981" font-family="'Space Mono', monospace" font-size="10">SYNTHESIZED ANSWER:</text>
+  <text x="496" y="274" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5">Index rebuild finished with 48,000 vectors.</text>
+  <text x="496" y="294" fill="#a1a1aa" font-family="'Plus Jakarta Sans', sans-serif" font-size="11">Memory footprint reduced by 34% using FP16 scalar quantization.</text>
+
+  <rect x="480" y="360" width="276" height="74" rx="8" fill="rgba(59, 130, 246, 0.08)" stroke="rgba(59, 130, 246, 0.25)"/>
+  <text x="496" y="388" fill="#60a5fa" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600">Model: DeepSeek-R1 / Llama-3.3 70B</text>
+  <text x="496" y="410" fill="#93c5fd" font-family="'Space Mono', monospace" font-size="10">Local inference via Ollama + vLLM</text>
+</svg>
