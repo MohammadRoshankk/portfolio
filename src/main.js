@@ -20,18 +20,260 @@ function easeInOut(t) {
 }
 
 // ==========================================================================
-// 1. PROCEDURAL 3D FORM GENERATORS (RESTYLED FOR ELEGANT BACKGROUND PRESENCE)
+// 1. PROCEDURAL 3D FORM GENERATORS (CLASSY MR MONOGRAM & 3D TYPOGRAPHY)
 // ==========================================================================
 const FormGenerators = {
-  // Ambient Celestial Constellation Ring (Hero Background)
-  celestial(count, target) {
-    for (let i = 0; i < count; i++) {
-      const u = Math.random() * PI2;
-      const r = 0.55 + Math.random() * 0.75;
-      target[i * 3] = r * Math.cos(u) + rand(-0.04, 0.04);
-      target[i * 3 + 1] = r * Math.sin(u) * 0.5 + rand(-0.04, 0.04);
-      target[i * 3 + 2] = rand(-0.35, 0.35);
+  // Classy 3D "MR" Monogram with luxury geometric diamond/circle badge
+  monogramMR(count) {
+    const offscreen = document.createElement('canvas');
+    offscreen.width = 800;
+    offscreen.height = 800;
+    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
+
+    const cx = offscreen.width / 2;
+    const cy = offscreen.height / 2;
+
+    // Draw luxury outer geometric circular badge
+    ctx.strokeStyle = 'rgba(0, 240, 255, 0.75)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 280, 0, PI2);
+    ctx.stroke();
+
+    // Subtle inner luxury diamond accent
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 305);
+    ctx.lineTo(cx + 305, cy);
+    ctx.lineTo(cx, cy + 305);
+    ctx.lineTo(cx - 305, cy);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Bold luxury "MR" monogram typography
+    ctx.font = 'bold 220px "Syne", "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('MR', cx, cy - 10);
+
+    // Subtle subtext "MOHAMMAD ROSHAN"
+    ctx.font = '600 24px "Space Mono", monospace';
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.9)';
+    ctx.letterSpacing = '6px';
+    ctx.fillText('MOHAMMAD ROSHAN', cx, cy + 130);
+
+    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
+    const points = [];
+
+    const step = 4;
+    for (let y = 0; y < offscreen.height; y += step) {
+      for (let x = 0; x < offscreen.width; x += step) {
+        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
+        if (alpha > 80) {
+          // Layered 3D depth for sculptural physical weight
+          points.push(
+            (x - cx) / 450,
+            (cy - y) / 450,
+            rand(-0.12, 0.12)
+          );
+        }
+      }
     }
+
+    const target = new Float32Array(count * 3);
+    const validCount = points.length / 3 || 1;
+
+    for (let i = 0; i < count; i++) {
+      const srcIdx = (i % validCount) * 3;
+      target[i * 3] = (points[srcIdx] || 0) + rand(-0.005, 0.005);
+      target[i * 3 + 1] = (points[srcIdx + 1] || 0) + rand(-0.005, 0.005);
+      target[i * 3 + 2] = (points[srcIdx + 2] || 0) + rand(-0.008, 0.008);
+    }
+
+    return target;
+  },
+
+  // 3D Stacked Volumetric Typography: "MOHAMMAD ROSHAN"
+  fullName(count) {
+    const offscreen = document.createElement('canvas');
+    offscreen.width = 1200;
+    offscreen.height = 600;
+    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
+
+    const cx = offscreen.width / 2;
+    const cy = offscreen.height / 2;
+
+    // Stacked high-impact editorial typography
+    ctx.font = 'bold 125px "Syne", "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('MOHAMMAD', cx, cy - 80);
+    ctx.fillText('ROSHAN', cx, cy + 65);
+
+    // Accent line
+    ctx.strokeStyle = '#00f0ff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 240, cy + 155);
+    ctx.lineTo(cx + 240, cy + 155);
+    ctx.stroke();
+
+    ctx.font = '500 22px "Space Mono", monospace';
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.9)';
+    ctx.fillText('AI & DATA ARCHITECT', cx, cy + 195);
+
+    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
+    const points = [];
+
+    const step = 4;
+    for (let y = 0; y < offscreen.height; y += step) {
+      for (let x = 0; x < offscreen.width; x += step) {
+        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
+        if (alpha > 85) {
+          points.push(
+            (x - cx) / 500,
+            (cy - y) / 500,
+            rand(-0.09, 0.09)
+          );
+        }
+      }
+    }
+
+    const target = new Float32Array(count * 3);
+    const validCount = points.length / 3 || 1;
+
+    for (let i = 0; i < count; i++) {
+      const srcIdx = (i % validCount) * 3;
+      target[i * 3] = (points[srcIdx] || 0) + rand(-0.005, 0.005);
+      target[i * 3 + 1] = (points[srcIdx + 1] || 0) + rand(-0.005, 0.005);
+      target[i * 3 + 2] = (points[srcIdx + 2] || 0) + rand(-0.006, 0.006);
+    }
+
+    return target;
+  },
+
+  // 3D "AI & DATA" Systems Matrix
+  aiData(count) {
+    const offscreen = document.createElement('canvas');
+    offscreen.width = 1100;
+    offscreen.height = 500;
+    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
+
+    const cx = offscreen.width / 2;
+    const cy = offscreen.height / 2;
+
+    ctx.font = 'bold 120px "Syne", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('AI & DATA', cx, cy - 40);
+
+    ctx.font = 'bold 44px "Space Mono", monospace';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('SYSTEMS ARCHITECT', cx, cy + 60);
+
+    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
+    const textPoints = [];
+
+    const step = 4;
+    for (let y = 0; y < offscreen.height; y += step) {
+      for (let x = 0; x < offscreen.width; x += step) {
+        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
+        if (alpha > 90) {
+          textPoints.push(
+            (x - cx) / 460,
+            (cy - y) / 460,
+            rand(-0.08, 0.08)
+          );
+        }
+      }
+    }
+
+    const target = new Float32Array(count * 3);
+    const validCount = textPoints.length / 3 || 1;
+    const torusPortion = Math.floor(count * 0.35);
+
+    for (let i = 0; i < count; i++) {
+      if (i < count - torusPortion) {
+        const srcIdx = (i % validCount) * 3;
+        target[i * 3] = (textPoints[srcIdx] || 0) + rand(-0.005, 0.005);
+        target[i * 3 + 1] = (textPoints[srcIdx + 1] || 0) + rand(-0.005, 0.005);
+        target[i * 3 + 2] = (textPoints[srcIdx + 2] || 0) + rand(-0.006, 0.006);
+      } else {
+        // Surrounding orbital neural ring
+        const u = Math.random() * PI2;
+        const v = Math.random() * PI2;
+        const R = 0.85 + 0.08 * Math.cos(v);
+        target[i * 3] = R * Math.cos(u);
+        target[i * 3 + 1] = 0.08 * Math.sin(v) + rand(-0.02, 0.02);
+        target[i * 3 + 2] = R * Math.sin(u) * 0.4 + rand(-0.08, 0.08);
+      }
+    }
+
+    return target;
+  },
+
+  // 3D "CREATIVE ENGINEER" Convergence with Starfield
+  creative(count) {
+    const offscreen = document.createElement('canvas');
+    offscreen.width = 1100;
+    offscreen.height = 500;
+    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
+
+    const cx = offscreen.width / 2;
+    const cy = offscreen.height / 2;
+
+    ctx.font = 'bold 110px "Syne", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('CREATIVE', cx, cy - 45);
+
+    ctx.font = 'bold 95px "Syne", sans-serif';
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText('ENGINEER', cx, cy + 65);
+
+    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
+    const textPoints = [];
+
+    const step = 4;
+    for (let y = 0; y < offscreen.height; y += step) {
+      for (let x = 0; x < offscreen.width; x += step) {
+        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
+        if (alpha > 90) {
+          textPoints.push(
+            (x - cx) / 460,
+            (cy - y) / 460,
+            rand(-0.08, 0.08)
+          );
+        }
+      }
+    }
+
+    const target = new Float32Array(count * 3);
+    const validCount = textPoints.length / 3 || 1;
+    const galaxyPortion = Math.floor(count * 0.4);
+
+    for (let i = 0; i < count; i++) {
+      if (i < count - galaxyPortion) {
+        const srcIdx = (i % validCount) * 3;
+        target[i * 3] = (textPoints[srcIdx] || 0) + rand(-0.005, 0.005);
+        target[i * 3 + 1] = (textPoints[srcIdx + 1] || 0) + rand(-0.005, 0.005);
+        target[i * 3 + 2] = (textPoints[srcIdx + 2] || 0) + rand(-0.006, 0.006);
+      } else {
+        // Celestial spiral halo
+        const angle = Math.random() * PI2 * 3;
+        const rad = 0.5 + Math.random() * 0.75;
+        target[i * 3] = rad * Math.cos(angle) + rand(-0.03, 0.03);
+        target[i * 3 + 1] = rad * Math.sin(angle) * 0.45 + rand(-0.03, 0.03);
+        target[i * 3 + 2] = rand(-0.25, 0.25);
+      }
+    }
+
+    return target;
   },
 
   // 3D Rotating Data Cube with layered inner grid
@@ -49,18 +291,6 @@ const FormGenerators = {
       target[i * 3] = x;
       target[i * 3 + 1] = y;
       target[i * 3 + 2] = z;
-    }
-  },
-
-  // 3D Neural Synapse Torus (Donut)
-  torus(count, target) {
-    for (let i = 0; i < count; i++) {
-      const u = Math.random() * PI2;
-      const v = Math.random() * PI2;
-      const R = 0.33 + 0.11 * Math.cos(v);
-      target[i * 3] = R * Math.cos(u);
-      target[i * 3 + 1] = 0.11 * Math.sin(v);
-      target[i * 3 + 2] = R * Math.sin(u);
     }
   },
 
@@ -84,60 +314,15 @@ const FormGenerators = {
     }
   },
 
-  // 3D Streaming Telemetry Wave
-  wave(count, target) {
-    const side = Math.ceil(Math.sqrt(count));
+  // Ambient Celestial Constellation Ring
+  celestial(count, target) {
     for (let i = 0; i < count; i++) {
-      const x = ((i % side) / side - 0.5) * 1.1;
-      const z = (Math.floor(i / side) / side - 0.5) * 1.1;
-      const y = 0.08 * Math.sin(x * 9) + 0.08 * Math.cos(z * 7);
-      target[i * 3] = x;
-      target[i * 3 + 1] = y;
-      target[i * 3 + 2] = z;
+      const u = Math.random() * PI2;
+      const r = 0.55 + Math.random() * 0.75;
+      target[i * 3] = r * Math.cos(u) + rand(-0.04, 0.04);
+      target[i * 3 + 1] = r * Math.sin(u) * 0.5 + rand(-0.04, 0.04);
+      target[i * 3 + 2] = rand(-0.35, 0.35);
     }
-  },
-
-  // 3D Text Rasterizer: Spells out Name at the footer
-  rasterizeText(text, count) {
-    const offscreen = document.createElement('canvas');
-    offscreen.width = 1200;
-    offscreen.height = 240;
-    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
-
-    ctx.font = 'bold 80px "Syne", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, offscreen.width / 2, offscreen.height / 2);
-
-    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
-    const points = [];
-
-    const step = 4;
-    for (let y = 0; y < offscreen.height; y += step) {
-      for (let x = 0; x < offscreen.width; x += step) {
-        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
-        if (alpha > 128) {
-          points.push(
-            (x - offscreen.width / 2) / offscreen.height,
-            (offscreen.height / 2 - y) / offscreen.height,
-            rand(-0.02, 0.02)
-          );
-        }
-      }
-    }
-
-    const target = new Float32Array(count * 3);
-    const validCount = points.length / 3 || 1;
-
-    for (let i = 0; i < count; i++) {
-      const srcIdx = (i % validCount) * 3;
-      target[i * 3] = (points[srcIdx] || 0) + rand(-0.005, 0.005);
-      target[i * 3 + 1] = (points[srcIdx + 1] || 0) + rand(-0.005, 0.005);
-      target[i * 3 + 2] = points[srcIdx + 2] || 0;
-    }
-
-    return target;
   }
 };
 
@@ -276,19 +461,18 @@ function initBackgroundEngine() {
 
   // Initialize distinct 3D forms
   const forms = {
-    celestial: new Float32Array(COUNT * 3),
-    torus: new Float32Array(COUNT * 3),
+    mr: FormGenerators.monogramMR(COUNT),
+    name: FormGenerators.fullName(COUNT),
+    aiData: FormGenerators.aiData(COUNT),
+    creative: FormGenerators.creative(COUNT),
     cube: new Float32Array(COUNT * 3),
     helix: new Float32Array(COUNT * 3),
-    wave: new Float32Array(COUNT * 3),
-    name: FormGenerators.rasterizeText('MOHAMMAD ROSHAN', COUNT)
+    celestial: new Float32Array(COUNT * 3)
   };
 
-  FormGenerators.celestial(COUNT, forms.celestial);
-  FormGenerators.torus(COUNT, forms.torus);
   FormGenerators.cube(COUNT, forms.cube);
   FormGenerators.helix(COUNT, forms.helix);
-  FormGenerators.wave(COUNT, forms.wave);
+  FormGenerators.celestial(COUNT, forms.celestial);
 
   const seeds = new Float32Array(COUNT * 3);
   const lums = new Float32Array(COUNT);
@@ -306,8 +490,8 @@ function initBackgroundEngine() {
   geometry.setAttribute('aLum', new THREE.BufferAttribute(lums, 1));
   geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 3));
 
-  geometry.attributes.aFrom.array.set(forms.celestial);
-  geometry.attributes.aTo.array.set(forms.cube);
+  geometry.attributes.aFrom.array.set(forms.mr);
+  geometry.attributes.aTo.array.set(forms.name);
   geometry.attributes.aFrom.needsUpdate = true;
   geometry.attributes.aTo.needsUpdate = true;
 
@@ -342,15 +526,15 @@ function initBackgroundEngine() {
 
   // Site Mode Scroll Sections
   const sections = [
-    { id: '#hero', form: 'celestial', tilt: 0.1, spin: 0.05 },
+    { id: '#hero', form: 'mr', tilt: 0.1, spin: 0.05 },
     { id: '#projects', form: 'cube', tilt: 0.55, spin: 0.2 },
     { id: '#skills', form: 'helix', tilt: 0.35, spin: 0.25 },
-    { id: '#about', form: 'wave', tilt: 0.95, spin: 0.1 },
+    { id: '#about', form: 'aiData', tilt: 0.2, spin: 0.1 },
     { id: '#contact', form: 'name', tilt: 0, spin: 0 }
   ];
 
-  // 3D Journey Chapters: 1: Celestial, 2: Torus, 3: Cube, 4: Name
-  const chapterForms = ['celestial', 'torus', 'cube', 'name'];
+  // 3D Journey Chapters: 1: Classy MR, 2: Full Name, 3: AI & Data, 4: Creative Engineer
+  const chapterForms = ['mr', 'name', 'aiData', 'creative'];
 
   let currentMode = 'site';
   let storyChapter = 1;
@@ -358,8 +542,8 @@ function initBackgroundEngine() {
   let transitionProgress = 0;
   const transitionDuration = 1100;
   let transitionStartTime = 0;
-  let fromFormName = 'celestial';
-  let toFormName = 'celestial';
+  let fromFormName = 'mr';
+  let toFormName = 'mr';
 
   let currentFromIdx = 0;
   let currentToIdx = 1;
@@ -633,6 +817,36 @@ function initModeSwitcher(engine) {
   const storyDots = document.querySelectorAll('.story-dot');
 
   let activeMode = 'site';
+  let autoPlayEnabled = true;
+  let autoPlayTimer = null;
+  const AUTOPLAY_INTERVAL_MS = 6800;
+
+  function resetAutoPlay() {
+    if (autoPlayTimer) clearInterval(autoPlayTimer);
+    if (!autoPlayEnabled || activeMode !== 'story') return;
+
+    autoPlayTimer = setInterval(() => {
+      if (activeMode === 'story') {
+        engine?.nextChapter();
+      }
+    }, AUTOPLAY_INTERVAL_MS);
+  }
+
+  const autoplayBtn = document.getElementById('story-autoplay-btn');
+  const autoplayLabel = document.getElementById('autoplay-label');
+
+  autoplayBtn?.addEventListener('click', () => {
+    autoPlayEnabled = !autoPlayEnabled;
+    autoplayBtn.classList.toggle('is-active', autoPlayEnabled);
+    if (autoplayLabel) {
+      autoplayLabel.textContent = autoPlayEnabled ? 'Auto Flow: ON' : 'Auto Flow: PAUSED';
+    }
+    if (autoPlayEnabled) {
+      resetAutoPlay();
+    } else if (autoPlayTimer) {
+      clearInterval(autoPlayTimer);
+    }
+  });
 
   function setMode(mode) {
     activeMode = mode;
@@ -644,6 +858,7 @@ function initModeSwitcher(engine) {
       document.body.classList.remove('mode-story');
       document.body.style.overflow = 'auto';
       window.history.replaceState(null, '', '?v=site');
+      if (autoPlayTimer) clearInterval(autoPlayTimer);
       engine?.setMode('site');
     } else {
       btnStory?.classList.add('active');
@@ -654,6 +869,7 @@ function initModeSwitcher(engine) {
       document.body.style.overflow = 'hidden';
       window.history.replaceState(null, '', '?v=story');
       engine?.setMode('story');
+      resetAutoPlay();
     }
   }
 
@@ -669,13 +885,22 @@ function initModeSwitcher(engine) {
   });
 
   // Story Next / Prev Controls
-  storyPrev?.addEventListener('click', () => engine?.prevChapter());
-  storyNext?.addEventListener('click', () => engine?.nextChapter());
+  storyPrev?.addEventListener('click', () => {
+    engine?.prevChapter();
+    resetAutoPlay();
+  });
+  storyNext?.addEventListener('click', () => {
+    engine?.nextChapter();
+    resetAutoPlay();
+  });
 
   storyDots.forEach((dot) => {
     dot.addEventListener('click', () => {
       const idx = parseInt(dot.getAttribute('data-index'), 10);
-      if (!isNaN(idx)) engine?.goToChapter(idx);
+      if (!isNaN(idx)) {
+        engine?.goToChapter(idx);
+        resetAutoPlay();
+      }
     });
   });
 
@@ -685,9 +910,11 @@ function initModeSwitcher(engine) {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
       e.preventDefault();
       engine?.nextChapter();
+      resetAutoPlay();
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
       engine?.prevChapter();
+      resetAutoPlay();
     }
   });
 
@@ -699,9 +926,11 @@ function initModeSwitcher(engine) {
     if (e.deltaY > 25) {
       lastWheelTime = Date.now();
       engine?.nextChapter();
+      resetAutoPlay();
     } else if (e.deltaY < -25) {
       lastWheelTime = Date.now();
       engine?.prevChapter();
+      resetAutoPlay();
     }
   }, { passive: true });
 
@@ -715,8 +944,13 @@ function initModeSwitcher(engine) {
   window.addEventListener('touchend', (e) => {
     if (activeMode !== 'story') return;
     const dy = e.changedTouches[0].clientY - touchY;
-    if (dy < -45) engine?.nextChapter();
-    else if (dy > 45) engine?.prevChapter();
+    if (dy < -45) {
+      engine?.nextChapter();
+      resetAutoPlay();
+    } else if (dy > 45) {
+      engine?.prevChapter();
+      resetAutoPlay();
+    }
   }, { passive: true });
 
   // URL Initial State Detection

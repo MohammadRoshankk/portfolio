@@ -1449,6 +1449,48 @@ body.mode-story .site-header {
   border-radius: var(--radius-pill);
 }
 
+.story-autoplay-pill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 0.38rem 0.95rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+  margin-top: 1.5rem;
+}
+
+.story-autoplay-pill:hover {
+  border-color: rgba(0, 240, 255, 0.4);
+  color: #ffffff;
+}
+
+.story-autoplay-pill.is-active {
+  border-color: rgba(0, 240, 255, 0.5);
+  color: var(--accent-cyan);
+  background: rgba(0, 240, 255, 0.05);
+}
+
+.autoplay-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.story-autoplay-pill.is-active .autoplay-dot {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
 /* ==========================================================================
    ACCESSIBILITY & REDUCED MOTION
    ========================================================================== */
