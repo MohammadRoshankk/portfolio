@@ -435,48 +435,127 @@ body.loading {
   justify-content: center;
   align-items: center;
   position: relative;
-}
-
-.hero-photo-frame {
   width: 100%;
-  max-width: 380px;
-  aspect-ratio: 4/5;
-  border-radius: 28px;
-  overflow: hidden;
+}
+
+/* ==========================================================================
+   PORTRAIT EXPERIENCE (Codrops / Phantom.land / Max Inspired Spotlight)
+   Occupies ~40-45% of Hero Width with subtle darkened base, ambient glow,
+   interactive cursor-controlled circular spotlight and dispersing particles.
+   ========================================================================== */
+.portrait-stage {
   position: relative;
-  background: rgba(14, 14, 20, 0.5);
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1 / 1.18;
+  border-radius: 32px;
+  overflow: hidden;
+  background: #08080c;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.85), 0 0 50px rgba(0, 240, 255, 0.1);
+  box-shadow: 
+    0 30px 60px -15px rgba(0, 0, 0, 0.95),
+    0 0 60px rgba(0, 240, 255, 0.12);
   cursor: crosshair;
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.hero-photo-frame:hover {
+.portrait-stage:hover {
   border-color: rgba(0, 240, 255, 0.4);
+  box-shadow: 
+    0 35px 70px -15px rgba(0, 0, 0, 0.95),
+    0 0 80px rgba(0, 240, 255, 0.2);
 }
 
-.hero-photo-img {
+/* Ambient Soft Cyan Backlight Glow */
+.portrait-glow {
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle at 55% 45%, rgba(0, 240, 255, 0.22) 0%, rgba(59, 130, 246, 0.1) 45%, transparent 70%);
+  filter: blur(35px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Base Partially Obscured / Darkened / Halftone Photo */
+.portrait-base-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 15%;
-  opacity: 0.18;
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s ease;
+  object-position: center 12%;
+  filter: grayscale(85%) brightness(0.24) contrast(1.3);
+  opacity: 0.92;
+  z-index: 2;
+  pointer-events: none;
+  transition: filter 0.5s ease;
 }
 
-.hero-photo-frame:hover .hero-photo-img {
-  opacity: 0.95;
-  transform: scale(1.02);
-}
-
-.hero-photo-overlay {
+/* Reveal Layer: Full-Color, Crystal-Clear Portrait with Dynamic Radial Mask */
+.portrait-reveal-layer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 65%, rgba(7, 7, 10, 0.9) 100%);
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  opacity: var(--reveal-opacity, 0);
+  -webkit-mask-image: radial-gradient(
+    circle var(--reveal-radius, 0px) at var(--reveal-x, 50%) var(--reveal-y, 50%),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.95) 45%,
+    rgba(0, 0, 0, 0.3) 75%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--reveal-radius, 0px) at var(--reveal-x, 50%) var(--reveal-y, 50%),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.95) 45%,
+    rgba(0, 0, 0, 0.3) 75%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  transition: opacity 0.25s ease;
+}
+
+.portrait-reveal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 12%;
+  filter: brightness(1.08) contrast(1.1) saturate(1.12);
+}
+
+/* Spotlight Rim / Cyan Lens Ring Following Pointer */
+.portrait-spotlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--reveal-radius, 0px) * 2);
+  height: calc(var(--reveal-radius, 0px) * 2);
+  transform: translate(calc(var(--reveal-x, 50%) - var(--reveal-radius, 0px)), calc(var(--reveal-y, 50%) - var(--reveal-radius, 0px)));
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 240, 255, 0.45);
+  box-shadow: 
+    0 0 25px rgba(0, 240, 255, 0.35),
+    inset 0 0 25px rgba(0, 240, 255, 0.15);
+  pointer-events: none;
+  z-index: 5;
+  opacity: var(--reveal-opacity, 0);
+  transition: opacity 0.25s ease;
+}
+
+/* Canvas Layer with Displacing Particles and Floating Motes */
+.portrait-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
   pointer-events: none;
 }
 
-.hero-photo-hint {
+/* Interactive Status Pill */
+.portrait-status-badge {
   position: absolute;
   bottom: 1.5rem;
   left: 50%;
@@ -485,13 +564,26 @@ body.loading {
   font-size: 0.68rem;
   letter-spacing: 0.18em;
   color: var(--accent-cyan);
-  background: rgba(7, 7, 10, 0.75);
-  padding: 0.4rem 0.95rem;
+  background: rgba(7, 7, 10, 0.8);
+  padding: 0.45rem 1rem;
   border-radius: 99px;
   border: 1px solid rgba(0, 240, 255, 0.3);
   pointer-events: none;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 6;
   white-space: nowrap;
+}
+
+.badge-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+  animation: pulse 1.5s infinite;
 }
 
 .hero-status {

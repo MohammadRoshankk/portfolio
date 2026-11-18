@@ -122,12 +122,31 @@
             </div>
           </div>
 
-          <!-- Hero Dotted Portrait Slot (Inacio Nakiti Signature Reveal) -->
+          <!-- Hero Interactive Portrait Experience (Cursor-Controlled Spotlight Reveal) -->
           <div class="hero-visual">
-            <div class="hero-photo-frame" id="hero-photo-frame">
-              <img src="./roshan.jpg" alt="Mohammad Roshan K" class="hero-photo-img" />
-              <div class="hero-photo-overlay"></div>
-              <div class="hero-photo-hint">HOVER TO DISPERSE DOTS</div>
+            <div class="portrait-stage" id="portrait-stage">
+              <!-- Ambient Cyan Glow Backlight -->
+              <div class="portrait-glow"></div>
+
+              <!-- Base Obscured Darkened / Halftone Photo Layer -->
+              <img src="./roshan.jpg" alt="Mohammad Roshan K" class="portrait-base-img" />
+
+              <!-- Reveal Layer: Full-Color, Crystal-Clear Portrait with dynamic radial mask -->
+              <div class="portrait-reveal-layer" id="portrait-reveal-layer">
+                <img src="./roshan.jpg" alt="Mohammad Roshan K" class="portrait-reveal-img" />
+              </div>
+
+              <!-- Spotlight Lens Ring Following Cursor -->
+              <div class="portrait-spotlight" id="portrait-spotlight"></div>
+
+              <!-- Interactive WebGL / Canvas Particle Field with Halftone Grid & Displacement -->
+              <canvas id="portrait-canvas" class="portrait-canvas"></canvas>
+
+              <!-- Subtle Status Badge -->
+              <div class="portrait-status-badge">
+                <span class="badge-pulse"></span>
+                <span>INTERACTIVE REVEAL</span>
+              </div>
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@
  */
 
 import * as THREE from 'three';
+import { initPortraitReveal } from './portrait-reveal.js';
 
 // --- MATH UTILITIES ---
 const PI2 = Math.PI * 2;
@@ -484,7 +485,7 @@ async function initEngine() {
     mouse.hover = 1;
 
     // Check if mouse is hovering over hero photo for X-Ray reveal
-    const photoFrame = document.querySelector('.hero-photo-frame');
+    const photoFrame = document.querySelector('.portrait-stage');
     if (photoFrame && window.scrollY < window.innerHeight * 0.7) {
       const rect = photoFrame.getBoundingClientRect();
       if (
@@ -493,7 +494,7 @@ async function initEngine() {
         e.clientY >= rect.top &&
         e.clientY <= rect.bottom
       ) {
-        reveal.targetRadius = 135;
+        reveal.targetRadius = 155;
         reveal.x = e.clientX;
         reveal.y = e.clientY;
       } else {
@@ -621,5 +622,6 @@ async function initEngine() {
   });
 }
 
-// Start Engine
+// Start Engines
 initEngine();
+initPortraitReveal();
