@@ -263,10 +263,34 @@
               streaming architectures, and published mobile applications.</p>
           </div>
 
+          <!-- Interactive Skill & Category Filter Bar -->
+          <div class="project-filter-bar" id="project-filter-bar">
+            <div class="filter-header-line">
+              <span class="filter-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                FILTER ARCHITECTURES:
+              </span>
+              <div class="active-filter-indicator" id="active-filter-indicator" style="display: none;">
+                <span class="filter-badge" id="filter-badge-text">All</span>
+                <button class="btn-clear-filter" id="btn-clear-filter" aria-label="Clear Filter">✕ Clear</button>
+              </div>
+            </div>
+            <div class="filter-chips">
+              <button class="filter-chip active" data-filter="all">All Systems (6)</button>
+              <button class="filter-chip" data-filter="ai">AI &amp; Multi-Agent</button>
+              <button class="filter-chip" data-filter="distributed">Concurrency &amp; High-Scale</button>
+              <button class="filter-chip" data-filter="web-mobile">Web &amp; Native Mobile</button>
+              <button class="filter-chip" data-filter="python">Python / FastAPI</button>
+              <button class="filter-chip" data-filter="nextjs">Next.js &amp; TypeScript</button>
+            </div>
+          </div>
+
           <div class="projects-grid" id="projects-grid">
 
             <!-- Project 1: InsightPulse -->
-            <article class="project-card" data-tilt>
+            <article class="project-card" data-project="insightpulse" data-tech="python,fastapi,streamlit,distilbert,gemini,docker,ai,distributed" data-tilt>
               <div class="project-media">
                 <img src="./assets/images/project-insightpulse-highend.jpg"
                   alt="InsightPulse Customer Review Intelligence Dashboard" class="project-img" loading="lazy" />
@@ -284,16 +308,24 @@
                   Streamlit analytics dashboard and containerized FastAPI microservice.
                 </p>
                 <div class="project-tags">
-                  <span class="tech-tag">Python</span>
-                  <span class="tech-tag">FastAPI</span>
-                  <span class="tech-tag">Streamlit</span>
-                  <span class="tech-tag">DistilBERT</span>
-                  <span class="tech-tag">Google Gemini</span>
-                  <span class="tech-tag">Docker</span>
+                  <span class="tech-tag" data-filter="python">Python</span>
+                  <span class="tech-tag" data-filter="python">FastAPI</span>
+                  <span class="tech-tag" data-filter="python">Streamlit</span>
+                  <span class="tech-tag" data-filter="ai">DistilBERT</span>
+                  <span class="tech-tag" data-filter="ai">Google Gemini</span>
+                  <span class="tech-tag" data-filter="distributed">Docker</span>
                 </div>
                 <div class="project-actions">
+                  <button class="btn-action-arch" data-project-id="insightpulse" data-magnetic>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span>Inspect Architecture</span>
+                  </button>
                   <a href="https://github.com/MohammadRoshankk/insightpulse" target="_blank" rel="noreferrer"
-                    class="btn-action" data-magnetic>
+                    class="btn-action-ghost" data-magnetic>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                       stroke-width="1.75">
                       <path
@@ -301,14 +333,14 @@
                       </path>
                       <path d="M9 18c-4.51 2-5-2-7-2"></path>
                     </svg>
-                    <span>View Repository</span>
+                    <span>Repository</span>
                   </a>
                 </div>
               </div>
             </article>
 
             <!-- Project 2: Telos -->
-            <article class="project-card" data-tilt>
+            <article class="project-card" data-project="telos" data-tech="nextjs,typescript,tailwind,android,supabase,offline-sync,web-mobile" data-tilt>
               <div class="project-media">
                 <img src="./assets/images/project-telos-highend.jpg"
                   alt="Telos Intentional Journaling & Habit Reflection App" class="project-img" loading="lazy" />
@@ -326,13 +358,21 @@
                   web portal.
                 </p>
                 <div class="project-tags">
-                  <span class="tech-tag">Next.js</span>
-                  <span class="tech-tag">TypeScript</span>
-                  <span class="tech-tag">Tailwind CSS</span>
-                  <span class="tech-tag">Android Widgets</span>
-                  <span class="tech-tag">Vercel</span>
+                  <span class="tech-tag" data-filter="nextjs">Next.js</span>
+                  <span class="tech-tag" data-filter="nextjs">TypeScript</span>
+                  <span class="tech-tag" data-filter="web-mobile">Tailwind CSS</span>
+                  <span class="tech-tag" data-filter="web-mobile">Android Widgets</span>
+                  <span class="tech-tag" data-filter="web-mobile">Vercel</span>
                 </div>
                 <div class="project-actions">
+                  <button class="btn-action-arch" data-project-id="telos" data-magnetic>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span>Inspect Architecture</span>
+                  </button>
                   <a href="https://telos-website-two.vercel.app" target="_blank" rel="noreferrer" class="btn-action"
                     data-magnetic>
                     <span>Live Demo</span>
@@ -357,7 +397,7 @@
             </article>
 
             <!-- Project 3: Advocato -->
-            <article class="project-card" data-tilt>
+            <article class="project-card" data-project="advocato" data-tech="nextjs,typescript,supabase,qdrant,vector,multi-agent,langchain,ai,web-mobile" data-tilt>
               <div class="project-media">
                 <img src="./assets/images/project-advocato-highend.jpg" alt="Advocato AI Legal Intake & Workspace App"
                   class="project-img" loading="lazy" />
@@ -374,13 +414,21 @@
                   queries, matches verified legal practitioners, and provisions private consultation workspaces.
                 </p>
                 <div class="project-tags">
-                  <span class="tech-tag">Next.js</span>
-                  <span class="tech-tag">TypeScript</span>
-                  <span class="tech-tag">Supabase</span>
-                  <span class="tech-tag">AI Intake Agent</span>
-                  <span class="tech-tag">Vercel</span>
+                  <span class="tech-tag" data-filter="nextjs">Next.js</span>
+                  <span class="tech-tag" data-filter="nextjs">TypeScript</span>
+                  <span class="tech-tag" data-filter="web-mobile">Supabase</span>
+                  <span class="tech-tag" data-filter="ai">AI Intake Agent</span>
+                  <span class="tech-tag" data-filter="web-mobile">Vercel</span>
                 </div>
                 <div class="project-actions">
+                  <button class="btn-action-arch" data-project-id="advocato" data-magnetic>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span>Inspect Architecture</span>
+                  </button>
                   <a href="https://advocato-legal-app.vercel.app" target="_blank" rel="noreferrer" class="btn-action"
                     data-magnetic>
                     <span>Live Demo</span>
@@ -405,7 +453,7 @@
             </article>
 
             <!-- Project 4: Vaidyabhavan / Arogya Theeram -->
-            <article class="project-card" data-tilt>
+            <article class="project-card" data-project="vaidyabhavan" data-tech="python,fastapi,postgresql,erp,billing,gst,distributed" data-tilt>
               <div class="project-media">
                 <img src="./assets/images/project-vaidyabhavan-highend.jpg"
                   alt="Arogya Theeram Ayurvedic Hospital Operations Portal" class="project-img" loading="lazy" />
@@ -422,13 +470,21 @@
                   ward admissions, pharmacy dispensation, cashbook ledger audits, and automated GST invoice billing.
                 </p>
                 <div class="project-tags">
-                  <span class="tech-tag">Clinical ERP</span>
-                  <span class="tech-tag">Doctor Queue</span>
-                  <span class="tech-tag">Inpatient Wards</span>
-                  <span class="tech-tag">Pharmacy</span>
-                  <span class="tech-tag">GST Ledger</span>
+                  <span class="tech-tag" data-filter="distributed">Clinical ERP</span>
+                  <span class="tech-tag" data-filter="distributed">Doctor Queue</span>
+                  <span class="tech-tag" data-filter="distributed">Inpatient Wards</span>
+                  <span class="tech-tag" data-filter="distributed">Pharmacy</span>
+                  <span class="tech-tag" data-filter="distributed">GST Ledger</span>
                 </div>
                 <div class="project-actions">
+                  <button class="btn-action-arch" data-project-id="vaidyabhavan" data-magnetic>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span>Inspect Architecture</span>
+                  </button>
                   <a href="https://github.com/MohammadRoshankk/vaidyabhavan" target="_blank" rel="noreferrer"
                     class="btn-action" data-magnetic>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -438,14 +494,14 @@
                       </path>
                       <path d="M9 18c-4.51 2-5-2-7-2"></path>
                     </svg>
-                    <span>View Repository</span>
+                    <span>Repository</span>
                   </a>
                 </div>
               </div>
             </article>
 
             <!-- Project 5: Personal AI Knowledge Assistant -->
-            <article class="project-card" data-tilt>
+            <article class="project-card" data-project="personal-ai" data-tech="python,streamlit,faiss,huggingface,pytorch,rag,local-llm,ai" data-tilt>
               <div class="project-media">
                 <img src="./assets/images/project-assistant-highend.jpg" alt="Personal AI Knowledge Assistant"
                   class="project-img" loading="lazy" />
@@ -463,13 +519,21 @@
                   storage and HuggingFace Transformers.
                 </p>
                 <div class="project-tags">
-                  <span class="tech-tag">Python</span>
-                  <span class="tech-tag">Streamlit</span>
-                  <span class="tech-tag">FAISS</span>
-                  <span class="tech-tag">HuggingFace</span>
-                  <span class="tech-tag">PyTorch</span>
+                  <span class="tech-tag" data-filter="python">Python</span>
+                  <span class="tech-tag" data-filter="python">Streamlit</span>
+                  <span class="tech-tag" data-filter="ai">FAISS</span>
+                  <span class="tech-tag" data-filter="ai">HuggingFace</span>
+                  <span class="tech-tag" data-filter="ai">PyTorch</span>
                 </div>
                 <div class="project-actions">
+                  <button class="btn-action-arch" data-project-id="personal-ai" data-magnetic>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span>Inspect Architecture</span>
+                  </button>
                   <a href="https://github.com/MohammadRoshankk/personal-ai-knowledge-assistant" target="_blank"
                     rel="noreferrer" class="btn-action" data-magnetic>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -479,14 +543,14 @@
                       </path>
                       <path d="M9 18c-4.51 2-5-2-7-2"></path>
                     </svg>
-                    <span>View Repository</span>
+                    <span>Repository</span>
                   </a>
                 </div>
               </div>
             </article>
 
             <!-- Project 6: Banking API Testing Framework -->
-            <article class="project-card" data-tilt>
+            <article class="project-card" data-project="banking-api" data-tech="python,flask,selenium,postman,rest-api,concurrency,distributed" data-tilt>
               <div class="project-media">
                 <img src="./assets/images/project-banking-highend.jpg" alt="Banking API Testing Framework"
                   class="project-img" loading="lazy" />
@@ -503,13 +567,21 @@
                   idempotency, and concurrent payment processing using Python, Flask, Selenium, and Postman.
                 </p>
                 <div class="project-tags">
-                  <span class="tech-tag">Python</span>
-                  <span class="tech-tag">Flask</span>
-                  <span class="tech-tag">Selenium</span>
-                  <span class="tech-tag">Postman</span>
-                  <span class="tech-tag">REST API</span>
+                  <span class="tech-tag" data-filter="python">Python</span>
+                  <span class="tech-tag" data-filter="python">Flask</span>
+                  <span class="tech-tag" data-filter="distributed">Selenium</span>
+                  <span class="tech-tag" data-filter="distributed">Postman</span>
+                  <span class="tech-tag" data-filter="distributed">REST API</span>
                 </div>
                 <div class="project-actions">
+                  <button class="btn-action-arch" data-project-id="banking-api" data-magnetic>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                      <polyline points="2 17 12 22 22 17"></polyline>
+                      <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span>Inspect Architecture</span>
+                  </button>
                   <a href="https://github.com/MohammadRoshankk/banking-api-testing" target="_blank" rel="noreferrer"
                     class="btn-action" data-magnetic>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -519,7 +591,7 @@
                       </path>
                       <path d="M9 18c-4.51 2-5-2-7-2"></path>
                     </svg>
-                    <span>View Repository</span>
+                    <span>Repository</span>
                   </a>
                 </div>
               </div>
@@ -544,7 +616,7 @@
             </div>
             <h2 class="section-title">Core Engineering Disciplines</h2>
             <p class="section-subtitle">Bridging machine learning systems, high-scale data infrastructure, and creative
-              software craft.</p>
+              software craft. <span class="skills-filter-hint">Click any capability below to spotlight matching projects.</span></p>
           </div>
 
           <div class="skills-grid">
@@ -562,11 +634,11 @@
                 <h3>AI Systems &amp; Agents</h3>
               </div>
               <ul class="skill-list">
-                <li>Autonomous Multi-Agent Swarms &amp; DAG Execution</li>
-                <li>Dense Vector Retrieval &amp; Semantic RAG (Qdrant, Pinecone)</li>
-                <li>Model Fine-Tuning &amp; Quantization (LoRA, GGUF, vLLM)</li>
-                <li>Tool-Calling Pipelines &amp; Structured Reasoning Chains</li>
-                <li>PyTorch, LangChain, LlamaIndex, Gemini &amp; DeepSeek APIs</li>
+                <li class="interactive-skill" data-filter="ai">Autonomous Multi-Agent Swarms &amp; DAG Execution</li>
+                <li class="interactive-skill" data-filter="ai">Dense Vector Retrieval &amp; Semantic RAG (Qdrant, Pinecone)</li>
+                <li class="interactive-skill" data-filter="ai">Model Fine-Tuning &amp; Quantization (LoRA, GGUF, vLLM)</li>
+                <li class="interactive-skill" data-filter="ai">Tool-Calling Pipelines &amp; Structured Reasoning Chains</li>
+                <li class="interactive-skill" data-filter="ai">PyTorch, LangChain, LlamaIndex, Gemini &amp; DeepSeek APIs</li>
               </ul>
             </div>
 
@@ -583,11 +655,11 @@
                 <h3>Data Engineering &amp; Scale</h3>
               </div>
               <ul class="skill-list">
-                <li>High-Throughput Event Streaming (Kafka, Apache Spark)</li>
-                <li>Scalable ETL / ELT Pipelines (Airflow, DBT, BigQuery)</li>
-                <li>Distributed Lakehouse &amp; Low-Latency Analytics (ClickHouse)</li>
-                <li>High-Availability Relational &amp; Cache Layers (Postgres, Redis)</li>
-                <li>Cloud Infrastructure (GCP, AWS, Docker, Kubernetes, CI/CD)</li>
+                <li class="interactive-skill" data-filter="distributed">High-Throughput Event Streaming (Kafka, Apache Spark)</li>
+                <li class="interactive-skill" data-filter="distributed">Scalable ETL / ELT Pipelines (Airflow, DBT, BigQuery)</li>
+                <li class="interactive-skill" data-filter="distributed">Distributed Lakehouse &amp; Low-Latency Analytics (ClickHouse)</li>
+                <li class="interactive-skill" data-filter="distributed">High-Availability Relational &amp; Cache Layers (Postgres, Redis)</li>
+                <li class="interactive-skill" data-filter="distributed">Cloud Infrastructure (GCP, AWS, Docker, Kubernetes, CI/CD)</li>
               </ul>
             </div>
 
@@ -603,11 +675,11 @@
                 <h3>Creative Web &amp; Mobile</h3>
               </div>
               <ul class="skill-list">
-                <li>Interactive Three.js, WebGL &amp; Custom GLSL Shaders</li>
-                <li>Mobile Application Engineering (Flutter, Dart, SQLite)</li>
-                <li>Physics-Based Smooth Scroll (Lenis &amp; GSAP ScrollTrigger)</li>
-                <li>Modern React, Next.js 14, TypeScript &amp; Node.js</li>
-                <li>Procedural Web Audio API Spatial Sound Synthesis</li>
+                <li class="interactive-skill" data-filter="web-mobile">Interactive Three.js, WebGL &amp; Custom GLSL Shaders</li>
+                <li class="interactive-skill" data-filter="web-mobile">Mobile Application Engineering (Flutter, Dart, SQLite)</li>
+                <li class="interactive-skill" data-filter="web-mobile">Physics-Based Smooth Scroll (Lenis &amp; GSAP ScrollTrigger)</li>
+                <li class="interactive-skill" data-filter="nextjs">Modern React, Next.js 14, TypeScript &amp; Node.js</li>
+                <li class="interactive-skill" data-filter="web-mobile">Procedural Web Audio API Spatial Sound Synthesis</li>
               </ul>
             </div>
 
@@ -666,6 +738,14 @@
               a high-performance web experience — let's start the conversation.
             </p>
 
+            <!-- Live Dubai Timezone & Availability Badge -->
+            <div class="timezone-badge" id="timezone-badge">
+              <span class="timezone-dot"></span>
+              <span class="timezone-label">MOHAMMAD'S LOCAL TIME:</span>
+              <span class="timezone-clock" id="dubai-clock">--:--:-- GMT+4 (Dubai, UAE)</span>
+              <span class="timezone-status">· AVAILABLE FOR SELECT ROLES &amp; ARCHITECTURE CONSULTING</span>
+            </div>
+
             <div class="contact-box">
               <span class="contact-email" id="email-address">rosancva@gmail.com</span>
               <button class="btn-copy" id="btn-copy" data-magnetic aria-label="Copy Email">
@@ -674,6 +754,15 @@
                   <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
                 </svg>
                 <span id="copy-btn-text">Copy Email</span>
+              </button>
+              <button class="btn-book-chat" id="btn-book-chat" data-magnetic aria-label="Book Architecture Consultation">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Book 20-min Architecture Chat</span>
               </button>
             </div>
 
@@ -755,9 +844,10 @@
             <div class="story-tag">STAGE 01 / THE BEGINNING</div>
             <h2 class="story-heading">Childhood Genesis &amp; Curiosity</h2>
             <p class="story-text">
-              Softer rounded contours, wide exploratory eyes, and the dawn of relentless curiosity. Where the instinct to create, build, and deconstruct complex ideas first took root.
+              Softer rounded contours, wide exploratory eyes, and the dawn of relentless curiosity. Where the instinct
+              to create, build, and deconstruct complex ideas first took root.
             </p>
-            <div class="story-instruction">Scroll or swipe to advance facial evolution</div>
+            <div class="story-instruction">Scroll, drag timeline, or click face to trigger shockwaves</div>
           </div>
 
           <!-- Story Stage 2 -->
@@ -765,7 +855,8 @@
             <div class="story-tag">STAGE 02 / GROWING UP</div>
             <h2 class="story-heading">Adolescence &amp; Structural Discovery</h2>
             <p class="story-text">
-              Refining facial architecture, emerging angles, and intense focus. The formative years dedicated to mastering logic, systems thinking, and computational engineering.
+              Refining facial architecture, emerging angles, and intense focus. The formative years dedicated to
+              mastering logic, systems thinking, and computational engineering.
             </p>
           </div>
 
@@ -774,7 +865,8 @@
             <div class="story-tag">STAGE 03 / TRANSFORMATION</div>
             <h2 class="story-heading">Young Adult &amp; Technical Synthesis</h2>
             <p class="story-text">
-              Maturing structure, defined contours, and purposeful transformation. Bridging engineering rigor with architectural vision across data platforms, AI systems, and distributed scale.
+              Maturing structure, defined contours, and purposeful transformation. Bridging engineering rigor with
+              architectural vision across data platforms, AI systems, and distributed scale.
             </p>
           </div>
 
@@ -783,11 +875,50 @@
             <div class="story-tag">STAGE 04 / PRESENT IDENTITY</div>
             <h2 class="story-heading">Mohammad Roshan — Present Reality</h2>
             <p class="story-text">
-              The authentic adult reconstruction. 12,000 individually anchored particles synthesizing facial contours, beard lines, hair volume, and spatial depth relief from my current professional portrait.
+              The authentic adult reconstruction. 12,000 individually anchored particles synthesizing facial contours,
+              beard lines, hair volume, and spatial depth relief from my current professional portrait.
             </p>
             <div class="story-actions">
               <a href="#contact" class="btn-primary" id="btn-story-contact" data-magnetic>Connect with Roshan</a>
               <button class="btn-secondary" id="btn-story-switch" data-magnetic>Explore Portfolio Site</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Evolutionary Timeline Scrubber (Option A) -->
+        <div class="timeline-scrubber" id="timeline-scrubber" aria-label="Facial Evolution Timeline Scrubber">
+          <div class="timeline-header">
+            <div class="timeline-badge">
+              <span class="timeline-pulse"></span>
+              <span class="timeline-status" id="timeline-status">STAGE 01 — CHILDHOOD GENESIS (AGE 5)</span>
+            </div>
+            <div class="timeline-progress-val" id="timeline-percent">0.0% MORPH</div>
+          </div>
+
+          <div class="timeline-track-wrap" id="timeline-track-wrap">
+            <div class="timeline-track" id="timeline-track">
+              <div class="timeline-fill" id="timeline-fill"></div>
+              <div class="timeline-thumb" id="timeline-thumb">
+                <div class="thumb-glow"></div>
+                <div class="thumb-core"></div>
+              </div>
+              <!-- Evolutionary Milestones -->
+              <div class="timeline-milestone active" data-stage="0" style="left: 0%;">
+                <span class="milestone-dot"></span>
+                <span class="milestone-label">Age 5<br><small>Genesis</small></span>
+              </div>
+              <div class="timeline-milestone" data-stage="1" style="left: 33.333%;">
+                <span class="milestone-dot"></span>
+                <span class="milestone-label">Age 14<br><small>Growth</small></span>
+              </div>
+              <div class="timeline-milestone" data-stage="2" style="left: 66.666%;">
+                <span class="milestone-dot"></span>
+                <span class="milestone-label">Age 22<br><small>Synthesis</small></span>
+              </div>
+              <div class="timeline-milestone" data-stage="3" style="left: 100%;">
+                <span class="milestone-dot"></span>
+                <span class="milestone-label">Today<br><small>Identity</small></span>
+              </div>
             </div>
           </div>
         </div>
@@ -859,6 +990,140 @@
             </svg>
           </button>
         </div>
+
+        <!-- Keyboard Navigation Legend (Option C) -->
+        <div class="keyboard-legend">
+          <span class="key-pill"><kbd>1</kbd>–<kbd>4</kbd> Jump Stage</span>
+          <span class="key-pill"><kbd>A</kbd> Angle</span>
+          <span class="key-pill"><kbd>S</kbd> Shading</span>
+          <span class="key-pill"><kbd>M</kbd> Sound</span>
+          <span class="key-pill"><kbd>Space</kbd> / Click Shockwave</span>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==============================================
+       SLIDE-OUT ARCHITECTURE DRAWER (Option B)
+       ============================================== -->
+  <div class="arch-backdrop" id="arch-backdrop"></div>
+  <aside class="arch-drawer" id="arch-drawer" aria-label="Architecture Deep-Dive Drawer" aria-hidden="true">
+    <div class="arch-drawer-header">
+      <div class="arch-drawer-tagline">
+        <span class="arch-badge">SYSTEM ARCHITECTURE</span>
+        <span class="arch-project-category" id="drawer-category">AI Systems &amp; Scale</span>
+      </div>
+      <button class="arch-drawer-close" id="drawer-close" aria-label="Close Architecture Drawer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="arch-drawer-content">
+      <h3 class="arch-drawer-title" id="drawer-title">System Architecture Title</h3>
+      <p class="arch-drawer-desc" id="drawer-desc">Technical summary of system topology, data flow, and components.</p>
+
+      <!-- Key Throughput & Scale Metrics -->
+      <div class="arch-metrics-grid" id="drawer-metrics">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- SVG System Topology Diagram -->
+      <div class="arch-topology-section">
+        <div class="arch-subheading">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span>DATA FLOW &amp; SERVICE TOPOLOGY</span>
+        </div>
+        <div class="arch-svg-container" id="drawer-svg-container">
+          <!-- Injected SVG Diagram -->
+        </div>
+      </div>
+
+      <!-- Core System Components -->
+      <div class="arch-components-section">
+        <div class="arch-subheading">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span>ENGINEERING COMPONENTS</span>
+        </div>
+        <div class="arch-components-list" id="drawer-components">
+          <!-- Injected Components -->
+        </div>
+      </div>
+
+      <!-- Architectural Decisions & Trade-Offs -->
+      <div class="arch-tradeoffs-section">
+        <div class="arch-subheading">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>ARCHITECTURAL TRADE-OFFS &amp; DECISIONS</span>
+        </div>
+        <div class="arch-tradeoffs-list" id="drawer-tradeoffs">
+          <!-- Injected Tradeoffs -->
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==============================================
+       SCHEDULING / ARCHITECTURE CHAT MODAL (Option B)
+       ============================================== -->
+  <div class="booking-backdrop" id="booking-backdrop"></div>
+  <div class="booking-modal" id="booking-modal" aria-label="Book Architecture Consultation" aria-hidden="true">
+    <div class="booking-header">
+      <div class="booking-badge">LET'S CONNECT</div>
+      <button class="booking-close" id="booking-close" aria-label="Close Modal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="booking-body">
+      <h3 class="booking-title">Book an Architecture Chat</h3>
+      <p class="booking-subtitle">
+        Mohammad Roshan K is available for AI engineering positions, multi-agent platform architecture, and distributed systems consulting.
+      </p>
+
+      <div class="booking-options">
+        <div class="booking-card">
+          <div class="booking-card-header">
+            <span class="booking-time">20 MIN</span>
+            <span class="booking-type">Virtual / Google Meet</span>
+          </div>
+          <h4>Technical Intro &amp; Role Fit</h4>
+          <p>Quick discussion on open engineering opportunities, team requirements, and technical alignment.</p>
+          <a href="mailto:rosancva@gmail.com?subject=Technical%20Intro%20%E2%80%94%20Mohammad%20Roshan&body=Hi%20Mohammad%2C%0A%0AI'd%20love%20to%20connect%20for%20a%2020-min%20technical%20intro%20regarding%20an%20engineering%20opportunity.%0A%0ACompany%3A%20%0APreferred%20Time%20(GMT%2B4)%3A%20%0A%0ABest%2C" class="btn-primary btn-block" data-magnetic>
+            <span>Request 20-min Intro</span>
+          </a>
+        </div>
+
+        <div class="booking-card featured">
+          <div class="booking-card-header">
+            <span class="booking-time">45 MIN</span>
+            <span class="booking-type">Deep Dive</span>
+          </div>
+          <h4>System Design &amp; Architecture Audit</h4>
+          <p>Deep-dive analysis of your AI platform, data streaming pipeline, or high-throughput concurrency architecture.</p>
+          <a href="mailto:rosancva@gmail.com?subject=System%20Design%20Consultation%20%E2%80%94%20Mohammad%20Roshan&body=Hi%20Mohammad%2C%0A%0AWe%20would%20like%20to%20schedule%20a%2045-min%20architecture%20deep-dive%20regarding%3A%0A%0AProject%20Scope%3A%20%0APreferred%20Date%2FTime%3A%20%0A%0ABest%20regards%2C" class="btn-primary btn-block" data-magnetic>
+            <span>Request Architecture Deep-Dive</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
       </div>
     </div>
 

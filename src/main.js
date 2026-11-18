@@ -10,6 +10,7 @@
 
 import * as THREE from 'three';
 import { initPortraitReveal } from './portrait-reveal.js';
+import { ARCHITECTURE_DATA } from './architecture-data.js';
 import {
   EVOLUTION_COUNT,
   STAGE01_POSITIONS,
@@ -42,36 +43,36 @@ const FormGenerators = {
       const srcIdx = count === 12000 ? i : (i * 2) % 12000;
 
       // Positions
-      forms.stage01[i * 3]     = STAGE01_POSITIONS[srcIdx * 3];
+      forms.stage01[i * 3] = STAGE01_POSITIONS[srcIdx * 3];
       forms.stage01[i * 3 + 1] = STAGE01_POSITIONS[srcIdx * 3 + 1];
       forms.stage01[i * 3 + 2] = STAGE01_POSITIONS[srcIdx * 3 + 2];
 
-      forms.stage02[i * 3]     = STAGE02_POSITIONS[srcIdx * 3];
+      forms.stage02[i * 3] = STAGE02_POSITIONS[srcIdx * 3];
       forms.stage02[i * 3 + 1] = STAGE02_POSITIONS[srcIdx * 3 + 1];
       forms.stage02[i * 3 + 2] = STAGE02_POSITIONS[srcIdx * 3 + 2];
 
-      forms.stage03[i * 3]     = STAGE03_POSITIONS[srcIdx * 3];
+      forms.stage03[i * 3] = STAGE03_POSITIONS[srcIdx * 3];
       forms.stage03[i * 3 + 1] = STAGE03_POSITIONS[srcIdx * 3 + 1];
       forms.stage03[i * 3 + 2] = STAGE03_POSITIONS[srcIdx * 3 + 2];
 
-      forms.stage04[i * 3]     = STAGE04_POSITIONS[srcIdx * 3];
+      forms.stage04[i * 3] = STAGE04_POSITIONS[srcIdx * 3];
       forms.stage04[i * 3 + 1] = STAGE04_POSITIONS[srcIdx * 3 + 1];
       forms.stage04[i * 3 + 2] = STAGE04_POSITIONS[srcIdx * 3 + 2];
 
       // Colors
-      colors.stage01[i * 3]     = STAGE01_COLORS[srcIdx * 3];
+      colors.stage01[i * 3] = STAGE01_COLORS[srcIdx * 3];
       colors.stage01[i * 3 + 1] = STAGE01_COLORS[srcIdx * 3 + 1];
       colors.stage01[i * 3 + 2] = STAGE01_COLORS[srcIdx * 3 + 2];
 
-      colors.stage02[i * 3]     = STAGE02_COLORS[srcIdx * 3];
+      colors.stage02[i * 3] = STAGE02_COLORS[srcIdx * 3];
       colors.stage02[i * 3 + 1] = STAGE02_COLORS[srcIdx * 3 + 1];
       colors.stage02[i * 3 + 2] = STAGE02_COLORS[srcIdx * 3 + 2];
 
-      colors.stage03[i * 3]     = STAGE03_COLORS[srcIdx * 3];
+      colors.stage03[i * 3] = STAGE03_COLORS[srcIdx * 3];
       colors.stage03[i * 3 + 1] = STAGE03_COLORS[srcIdx * 3 + 1];
       colors.stage03[i * 3 + 2] = STAGE03_COLORS[srcIdx * 3 + 2];
 
-      colors.stage04[i * 3]     = STAGE04_COLORS[srcIdx * 3];
+      colors.stage04[i * 3] = STAGE04_COLORS[srcIdx * 3];
       colors.stage04[i * 3 + 1] = STAGE04_COLORS[srcIdx * 3 + 1];
       colors.stage04[i * 3 + 2] = STAGE04_COLORS[srcIdx * 3 + 2];
 
@@ -95,6 +96,8 @@ const vertexShader = `
   uniform float uAlpha;
   uniform vec4 uFrame; // cx, cy, size px, aspect
   uniform vec2 uRotation;
+  uniform vec4 uShockwave; // x, y (screen px), start_time, intensity
+  uniform float uAudioBass; // 0.0 to 1.0 bass frequency energy
 
   attribute vec3 aPos1;
   attribute vec3 aPos2;
@@ -183,6 +186,10 @@ const vertexShader = `
       sin(uTime * 0.45 + aSeed.x * 6.283) * 0.010
     );
 
+    // Option C: Audio-reactive synesthesia - pulse particle position along flight direction
+    float bassFactor = clamp(uAudioBass, 0.0, 1.0);
+    pos += flightDir * (bassFactor * 0.038);
+
     // Perspective spatial rotation
     vec3 pRot = rotate3D(pos, uRotation);
     pRot.z = min(pRot.z, CAMERA - 0.25);
@@ -191,6 +198,27 @@ const vertexShader = `
     // Perspective projection
     float persp = CAMERA / (CAMERA - pRot.z);
     vec2 screen = uFrame.xy + vec2(pRot.x, -pRot.y) * persp * uFrame.z;
+
+    // Option A: Interactive Shockwave Dispersion Wave
+    if (uShockwave.w > 0.001) {
+      float shockElapsed = uTime - uShockwave.z;
+      if (shockElapsed > 0.0 && shockElapsed < 1.6) {
+        vec2 shockCenter = uShockwave.xy;
+        float distToShock = distance(screen, shockCenter);
+        float waveRadius = shockElapsed * 460.0;
+        float waveDist = abs(distToShock - waveRadius);
+        float waveWidth = 85.0;
+        if (waveDist < waveWidth) {
+          float env = exp(-pow(waveDist / 40.0, 2.0));
+          float decay = exp(-shockElapsed * 2.0);
+          float ripple = sin((distToShock - waveRadius) * 0.12) * env * decay;
+          
+          vec2 dispDir = (distToShock > 0.1) ? normalize(screen - shockCenter) : vec2(0.0, 1.0);
+          screen += dispDir * (ripple * 48.0 * uShockwave.w);
+          pRot.z += ripple * 0.40 * uShockwave.w;
+        }
+      }
+    }
 
     // Subtle magnetic cursor deflection
     vec2 mouseDiff = screen - uMouse;
@@ -203,7 +231,8 @@ const vertexShader = `
     // Depth shading & point size
     float depthShade = clamp(0.60 + pRot.z * 0.85, 0.30, 1.0);
     float featureSize = mix(1.1, 0.88, aFeature);
-    float ptSize = uDot * (0.65 + aSeed.y * 0.6) * persp * featureSize;
+    // Option C: Bass energy scales point size dynamically
+    float ptSize = uDot * (0.65 + aSeed.y * 0.6) * persp * featureSize * (1.0 + bassFactor * 0.35);
 
     gl_Position = vec4(
       (screen.x / uViewport.x) * 2.0 - 1.0,
@@ -346,7 +375,9 @@ function initBackgroundEngine() {
     uColor: { value: new THREE.Color('#94a3b8') },
     uAccent: { value: new THREE.Color('#00f0ff') },
     uAccent2: { value: new THREE.Color('#38bdf8') },
-    uColorMode: { value: 0 } // 0: Natural Portrait, 1: Cyan Cyber, 2: 3D Depth
+    uColorMode: { value: 0 }, // 0: Natural Portrait, 1: Cyan Cyber, 2: 3D Depth
+    uShockwave: { value: new THREE.Vector4(-999, -999, 0, 0) },
+    uAudioBass: { value: 0.0 }
   };
 
   const material = new THREE.ShaderMaterial({
@@ -382,6 +413,13 @@ function initBackgroundEngine() {
   const hudVram = document.getElementById('hud-vram');
   const hudCount = document.getElementById('hud-count');
 
+  // Timeline Scrubber DOM elements (Option A)
+  const timelineFill = document.getElementById('timeline-fill');
+  const timelineThumb = document.getElementById('timeline-thumb');
+  const timelinePercent = document.getElementById('timeline-percent');
+  const timelineStatus = document.getElementById('timeline-status');
+  const milestones = document.querySelectorAll('.timeline-milestone');
+
   const mouse = {
     targetX: window.innerWidth / 2,
     targetY: window.innerHeight / 2,
@@ -407,6 +445,25 @@ function initBackgroundEngine() {
     const time = clock.getElapsedTime();
     const vh = window.innerHeight;
     const vw = window.innerWidth;
+
+    // Option C: Audio Bass Frequency Extraction for Real-Time Synesthesia
+    if (audioAnalyser && soundEnabled && audioDataArray) {
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      audioAnalyser.getByteFrequencyData(audioDataArray);
+      let bassAcc = 0;
+      const binCount = Math.min(4, audioDataArray.length);
+      for (let b = 0; b < binCount; b++) {
+        bassAcc += audioDataArray[b];
+      }
+      const rawBass = bassAcc / (binCount * 255.0);
+      audioBassLevel += (rawBass - audioBassLevel) * 0.22;
+      uniforms.uAudioBass.value = audioBassLevel;
+    } else {
+      audioBassLevel *= 0.92;
+      uniforms.uAudioBass.value = audioBassLevel;
+    }
 
     // Telemetry updates (measured every 500ms)
     const now = performance.now();
@@ -485,6 +542,39 @@ function initBackgroundEngine() {
       dots.forEach((dot, idx) => {
         dot.classList.toggle('active', idx === activeChapterIndex);
       });
+
+      // Option A: Update Timeline Scrubber UI in Real Time
+      const normProgress = Math.max(0.0, Math.min(3.0, currentScrollProgress));
+      const percentProgress = (normProgress / 3.0) * 100;
+
+      if (timelineFill) timelineFill.style.width = `${percentProgress}%`;
+      if (timelineThumb) timelineThumb.style.left = `${percentProgress}%`;
+      if (timelinePercent) timelinePercent.textContent = `${percentProgress.toFixed(1)}% MORPH`;
+
+      if (timelineStatus) {
+        if (normProgress < 0.15) {
+          timelineStatus.textContent = 'STAGE 01 — CHILDHOOD GENESIS (AGE 5)';
+        } else if (normProgress < 1.0) {
+          timelineStatus.textContent = `STAGE 01.${Math.floor(normProgress * 100)} — ${Math.round(normProgress * 100)}% MORPHING TO ADOLESCENCE`;
+        } else if (normProgress < 1.15) {
+          timelineStatus.textContent = 'STAGE 02 — ADOLESCENCE & DISCOVERY (AGE 14)';
+        } else if (normProgress < 2.0) {
+          timelineStatus.textContent = `STAGE 02.${Math.floor((normProgress - 1.0) * 100)} — ${Math.round((normProgress - 1.0) * 100)}% MORPHING TO YOUNG ADULT`;
+        } else if (normProgress < 2.15) {
+          timelineStatus.textContent = 'STAGE 03 — YOUNG ADULT & SYNTHESIS (AGE 22)';
+        } else if (normProgress < 2.85) {
+          timelineStatus.textContent = `STAGE 03.${Math.floor((normProgress - 2.0) * 100)} — ${Math.round((normProgress - 2.0) * 100)}% MORPHING TO ADULT IDENTITY`;
+        } else {
+          timelineStatus.textContent = 'STAGE 04 — MOHAMMAD ROSHAN (PRESENT IDENTITY)';
+        }
+      }
+
+      milestones.forEach((m) => {
+        const stageIdx = parseInt(m.getAttribute('data-stage'), 10);
+        m.classList.toggle('active', Math.round(normProgress) === stageIdx);
+        m.classList.toggle('passed', normProgress >= stageIdx);
+      });
+
     } else {
       // --- SITE EXPERIENCE MODE ---
       const scrollY = window.scrollY;
@@ -552,6 +642,25 @@ function initBackgroundEngine() {
         targetScrollProgress = Math.max(0.0, Math.ceil(currentScrollProgress - 1.05));
       }
     },
+    triggerShockwave(x, y) {
+      uniforms.uShockwave.value.set(x, y, clock.getElapsedTime(), 1.0);
+      playShockwaveChime();
+    },
+    cycleAngle() {
+      const angles = ['front', 'left', 'right', 'free'];
+      const nextIdx = (angles.indexOf(anglePreset) + 1) % angles.length;
+      this.setAnglePreset(angles[nextIdx]);
+    },
+    cycleShading() {
+      const nextMode = (uniforms.uColorMode.value + 1) % 3;
+      this.setColorMode(nextMode);
+    },
+    getAnglePreset() {
+      return anglePreset;
+    },
+    getColorMode() {
+      return uniforms.uColorMode.value;
+    },
     getProgress() {
       return currentScrollProgress;
     },
@@ -571,11 +680,16 @@ function initBackgroundEngine() {
 }
 
 // ==========================================================================
-// 4. ATMOSPHERIC SOUNDTRACK & PROCEDURAL AUDIO SYSTEM
+// 4. ATMOSPHERIC SOUNDTRACK & PROCEDURAL AUDIO SYSTEM / WEB AUDIO ANALYSER
 // ==========================================================================
 let audioTrack = null;
 let soundEnabled = false;
 let storyToneCtx = null;
+let audioCtx = null;
+let audioAnalyser = null;
+let audioDataArray = null;
+let audioSourceNode = null;
+let audioBassLevel = 0.0;
 
 function playStoryTone(freq = 440) {
   try {
@@ -603,6 +717,34 @@ function playStoryTone(freq = 440) {
   }
 }
 
+// Option A: Resonant High-Register Chime for 3D Shockwave Dispersion
+function playShockwaveChime() {
+  try {
+    if (!storyToneCtx) {
+      storyToneCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (storyToneCtx.state === 'suspended') {
+      storyToneCtx.resume();
+    }
+    const chord = [523.25, 659.25, 783.99, 1046.50]; // Ethereal C Major arpeggiated chime
+    chord.forEach((freq, idx) => {
+      const osc = storyToneCtx.createOscillator();
+      const gain = storyToneCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, storyToneCtx.currentTime + idx * 0.025);
+      gain.gain.setValueAtTime(0.022, storyToneCtx.currentTime + idx * 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, storyToneCtx.currentTime + 0.38 + idx * 0.025);
+
+      osc.connect(gain);
+      gain.connect(storyToneCtx.destination);
+      osc.start(storyToneCtx.currentTime + idx * 0.025);
+      osc.stop(storyToneCtx.currentTime + 0.38 + idx * 0.025);
+    });
+  } catch (e) {
+    // Audio gesture fallback
+  }
+}
+
 function initAudioSystem() {
   const audioBtn = document.getElementById('audio-toggle');
   const audioLabel = document.getElementById('audio-label');
@@ -613,6 +755,19 @@ function initAudioSystem() {
       audioTrack = new Audio('./assets/audio/epic-soundtrack.mp3');
       audioTrack.loop = true;
       audioTrack.volume = 0;
+
+      // Option C: Setup AnalyserNode for audio synesthesia
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioAnalyser = audioCtx.createAnalyser();
+        audioAnalyser.fftSize = 64;
+        audioDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+        audioSourceNode = audioCtx.createMediaElementSource(audioTrack);
+        audioSourceNode.connect(audioAnalyser);
+        audioAnalyser.connect(audioCtx.destination);
+      } catch (err) {
+        console.warn('Web Audio Analyser setup fallback:', err);
+      }
     }
   }
 
@@ -642,6 +797,9 @@ function initAudioSystem() {
     if (soundEnabled) {
       audioBtn.classList.add('playing');
       if (audioLabel) audioLabel.textContent = 'Sound On';
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
       audioTrack.play().then(() => {
         fadeAudio(0.5, 800);
       }).catch(err => {
@@ -658,7 +816,7 @@ function initAudioSystem() {
 }
 
 // ==========================================================================
-// 5. SITE VIEW VS 3D JOURNEY MODE SWITCHER & STORY CONTROLS
+// 5. SITE VIEW VS 3D JOURNEY MODE SWITCHER & KEYBOARD / SHOCKWAVE SYSTEM
 // ==========================================================================
 function initModeSwitcher(engine) {
   const siteView = document.getElementById('site-view');
@@ -775,15 +933,67 @@ function initModeSwitcher(engine) {
     });
   });
 
-  // Keyboard Navigation
-  window.addEventListener('keydown', (e) => {
+  // Option A: Click / Tap on 3D Canvas in Journey Mode Triggers Particle Shockwave
+  window.addEventListener('pointerdown', (e) => {
     if (activeMode !== 'story' && activeMode !== 'poc') return;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-      e.preventDefault();
-      engine?.nextChapter();
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      e.preventDefault();
-      engine?.prevChapter();
+    // Don't trigger if clicking on interactive controls
+    if (e.target.closest('button, a, input, .poc-panel, .timeline-scrubber, .story-controls, .keyboard-legend, .header-controls, .mode-switcher, .arch-drawer, .booking-modal')) {
+      return;
+    }
+    engine?.triggerShockwave(e.clientX, e.clientY);
+  });
+
+  // Option C: Full Keyboard Navigation & Shortcuts ([1-4], A, S, M, Space)
+  window.addEventListener('keydown', (e) => {
+    // Stage Direct Jumps [1-4]
+    if (['1', '2', '3', '4'].includes(e.key)) {
+      if (activeMode === 'story' || activeMode === 'poc') {
+        const stageIdx = parseInt(e.key, 10) - 1;
+        engine?.scrollToChapter(stageIdx);
+        return;
+      }
+    }
+
+    // Camera Angle Preset Cycle [A / a]
+    if (e.key === 'a' || e.key === 'A') {
+      if (activeMode === 'story' || activeMode === 'poc') {
+        engine?.cycleAngle();
+        return;
+      }
+    }
+
+    // Shading Palette Cycle [S / s]
+    if (e.key === 's' || e.key === 'S') {
+      if (activeMode === 'story' || activeMode === 'poc') {
+        engine?.cycleShading();
+        return;
+      }
+    }
+
+    // Sound Mute / Unmute Toggle [M / m]
+    if (e.key === 'm' || e.key === 'M') {
+      document.getElementById('audio-toggle')?.click();
+      return;
+    }
+
+    // Space Key Triggers Shockwave
+    if (e.key === ' ') {
+      if (activeMode === 'story' || activeMode === 'poc') {
+        e.preventDefault();
+        engine?.triggerShockwave(window.innerWidth * 0.5, window.innerHeight * 0.40);
+        return;
+      }
+    }
+
+    // Arrow Navigation
+    if (activeMode === 'story' || activeMode === 'poc') {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        engine?.nextChapter();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        engine?.prevChapter();
+      }
     }
   });
 
@@ -799,7 +1009,266 @@ function initModeSwitcher(engine) {
 }
 
 // ==========================================================================
-// 6. COPY EMAIL & UI CONTROLS
+// 6. OPTION A: INTERACTIVE EVOLUTIONARY TIMELINE SCRUBBER
+// ==========================================================================
+function initTimelineScrubber(engine) {
+  const trackWrap = document.getElementById('timeline-track-wrap');
+  if (!trackWrap) return;
+
+  let isDragging = false;
+
+  function updateScrubber(clientX) {
+    const rect = trackWrap.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    engine?.scrollToChapter(ratio * 3.0);
+  }
+
+  trackWrap.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    try {
+      trackWrap.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    updateScrubber(e.clientX);
+  });
+
+  trackWrap.addEventListener('pointermove', (e) => {
+    if (isDragging) {
+      updateScrubber(e.clientX);
+    }
+  });
+
+  const stopScrubbing = (e) => {
+    if (isDragging) {
+      isDragging = false;
+      try {
+        trackWrap.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+    }
+  };
+
+  trackWrap.addEventListener('pointerup', stopScrubbing);
+  trackWrap.addEventListener('pointercancel', stopScrubbing);
+
+  // Click on Milestones
+  document.querySelectorAll('.timeline-milestone').forEach((m) => {
+    m.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const stage = parseInt(m.getAttribute('data-stage'), 10);
+      if (!isNaN(stage)) engine?.scrollToChapter(stage);
+    });
+  });
+}
+
+// ==========================================================================
+// 7. OPTION B: SLIDE-OUT ARCHITECTURE DRAWER ENGINE
+// ==========================================================================
+function initArchitectureDrawer() {
+  const drawer = document.getElementById('arch-drawer');
+  const backdrop = document.getElementById('arch-backdrop');
+  const closeBtn = document.getElementById('drawer-close');
+
+  const titleEl = document.getElementById('drawer-title');
+  const categoryEl = document.getElementById('drawer-category');
+  const descEl = document.getElementById('drawer-desc');
+  const metricsEl = document.getElementById('drawer-metrics');
+  const svgContainer = document.getElementById('drawer-svg-container');
+  const componentsEl = document.getElementById('drawer-components');
+  const tradeoffsEl = document.getElementById('drawer-tradeoffs');
+
+  function openDrawer(projectId) {
+    const data = ARCHITECTURE_DATA[projectId];
+    if (!data) return;
+
+    if (titleEl) titleEl.textContent = data.title;
+    if (categoryEl) categoryEl.textContent = data.category;
+    if (descEl) descEl.textContent = data.tagline;
+
+    if (metricsEl) {
+      metricsEl.innerHTML = data.metrics.map(m => `
+        <div class="arch-metric-card">
+          <div class="arch-metric-val">${m.value}</div>
+          <div class="arch-metric-label">${m.label}</div>
+        </div>
+      `).join('');
+    }
+
+    if (svgContainer) {
+      svgContainer.innerHTML = data.svgTopology;
+    }
+
+    if (componentsEl) {
+      componentsEl.innerHTML = data.components.map(c => `
+        <div class="arch-component-card">
+          <div class="arch-comp-name">${c.name}</div>
+          <div class="arch-comp-role">${c.role}</div>
+        </div>
+      `).join('');
+    }
+
+    if (tradeoffsEl) {
+      tradeoffsEl.innerHTML = data.tradeoffs.map(t => `
+        <div class="arch-tradeoff-card">
+          <div class="arch-tradeoff-decision">${t.decision}</div>
+          <div class="arch-tradeoff-rationale">${t.rationale}</div>
+        </div>
+      `).join('');
+    }
+
+    drawer?.classList.add('open');
+    backdrop?.classList.add('open');
+    drawer?.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDrawer() {
+    drawer?.classList.remove('open');
+    backdrop?.classList.remove('open');
+    drawer?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.btn-action-arch').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const projId = btn.getAttribute('data-project-id');
+      if (projId) openDrawer(projId);
+    });
+  });
+
+  closeBtn?.addEventListener('click', closeDrawer);
+  backdrop?.addEventListener('click', closeDrawer);
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawer?.classList.contains('open')) {
+      closeDrawer();
+    }
+  });
+}
+
+// ==========================================================================
+// 8. OPTION B: SKILL-TO-PROJECT CROSS-FILTERING & SPOTLIGHT ENGINE
+// ==========================================================================
+function initSkillProjectFilter() {
+  const filterChips = document.querySelectorAll('.filter-chip');
+  const projectCards = document.querySelectorAll('.project-card');
+  const activeIndicator = document.getElementById('active-filter-indicator');
+  const badgeText = document.getElementById('filter-badge-text');
+  const clearBtn = document.getElementById('btn-clear-filter');
+
+  function applyFilter(filterKey, label = null) {
+    filterChips.forEach(chip => {
+      chip.classList.toggle('active', chip.getAttribute('data-filter') === filterKey);
+    });
+
+    let matchCount = 0;
+    projectCards.forEach(card => {
+      const techList = (card.getAttribute('data-tech') || '').toLowerCase();
+      if (filterKey === 'all') {
+        card.classList.remove('filter-dimmed', 'filter-highlighted');
+        matchCount++;
+      } else if (techList.includes(filterKey.toLowerCase())) {
+        card.classList.remove('filter-dimmed');
+        card.classList.add('filter-highlighted');
+        matchCount++;
+      } else {
+        card.classList.remove('filter-highlighted');
+        card.classList.add('filter-dimmed');
+      }
+    });
+
+    if (filterKey === 'all') {
+      if (activeIndicator) activeIndicator.style.display = 'none';
+    } else {
+      if (activeIndicator) {
+        activeIndicator.style.display = 'inline-flex';
+        if (badgeText) badgeText.textContent = `${label || filterKey} (${matchCount} matching)`;
+      }
+    }
+  }
+
+  filterChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const key = chip.getAttribute('data-filter') || 'all';
+      applyFilter(key, chip.textContent.trim());
+    });
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    applyFilter('all');
+  });
+
+  // Clicking capability items in #skills spotlights matching projects and scrolls smoothly!
+  document.querySelectorAll('.interactive-skill, .tech-tag[data-filter]').forEach(item => {
+    item.addEventListener('click', () => {
+      const filterKey = item.getAttribute('data-filter');
+      if (filterKey) {
+        applyFilter(filterKey, item.textContent.replace(' ↗', '').trim());
+        document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+}
+
+// ==========================================================================
+// 9. OPTION B: LIVE DUBAI TIMEZONE BADGE & ARCHITECTURE CHAT MODAL
+// ==========================================================================
+function initDubaiClockAndBooking() {
+  const clockEl = document.getElementById('dubai-clock');
+  const modal = document.getElementById('booking-modal');
+  const backdrop = document.getElementById('booking-backdrop');
+  const closeBtn = document.getElementById('booking-close');
+  const bookBtn = document.getElementById('btn-book-chat');
+
+  function updateDubaiClock() {
+    if (!clockEl) return;
+    try {
+      const now = new Date();
+      // Dubai is UTC+4
+      const options = {
+        timeZone: 'Asia/Dubai',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      };
+      const formatter = new Intl.DateTimeFormat('en-US', options);
+      const timeStr = formatter.format(now);
+      clockEl.textContent = `${timeStr} GMT+4 (Dubai, UAE)`;
+    } catch (e) {
+      clockEl.textContent = 'GMT+4 (Dubai, UAE)';
+    }
+  }
+
+  updateDubaiClock();
+  setInterval(updateDubaiClock, 1000);
+
+  function openModal() {
+    modal?.classList.add('open');
+    backdrop?.classList.add('open');
+    modal?.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal?.classList.remove('open');
+    backdrop?.classList.remove('open');
+    modal?.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  bookBtn?.addEventListener('click', openModal);
+  closeBtn?.addEventListener('click', closeModal);
+  backdrop?.addEventListener('click', closeModal);
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('open')) {
+      closeModal();
+    }
+  });
+}
+
+// ==========================================================================
+// 10. COPY EMAIL, PRELOADER & CURSOR CONTROLS
 // ==========================================================================
 function initUIControls() {
   const btnCopy = document.getElementById('btn-copy');
@@ -881,4 +1350,9 @@ const engine = initBackgroundEngine();
 initPortraitReveal();
 initAudioSystem();
 initModeSwitcher(engine);
+initTimelineScrubber(engine);
+initArchitectureDrawer();
+initSkillProjectFilter();
+initDubaiClockAndBooking();
 initUIControls();
+
