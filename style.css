@@ -1337,27 +1337,41 @@ body.mode-story .site-header {
 }
 
 .story-container {
-  max-width: 720px;
-  padding: 2.5rem;
+  max-width: 760px;
+  width: 90%;
+  padding: 2.75rem 2rem;
   text-align: center;
   pointer-events: auto;
   position: relative;
   z-index: 12;
-  background: radial-gradient(circle at center, rgba(9, 9, 12, 0.78) 0%, rgba(9, 9, 12, 0.45) 55%, transparent 80%);
+  background: radial-gradient(circle at center, rgba(9, 9, 12, 0.82) 0%, rgba(9, 9, 12, 0.45) 60%, transparent 85%);
   border-radius: var(--radius-xl);
+  backdrop-filter: blur(8px);
+}
+
+.story-deck {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 280px;
+  position: relative;
 }
 
 .story-chapter {
-  display: none;
+  grid-area: 1 / 1;
+  width: 100%;
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(20px);
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s ease;
 }
 
 .story-chapter.active-chapter {
-  display: block;
   opacity: 1;
   transform: translateY(0);
+  pointer-events: auto;
+  visibility: visible;
 }
 
 .story-tag {
@@ -1447,48 +1461,6 @@ body.mode-story .site-header {
   background: var(--accent-cyan);
   width: 20px;
   border-radius: var(--radius-pill);
-}
-
-.story-autoplay-pill {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  padding: 0.38rem 0.95rem;
-  border-radius: var(--radius-pill);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all var(--transition-fast);
-  margin-top: 1.5rem;
-}
-
-.story-autoplay-pill:hover {
-  border-color: rgba(0, 240, 255, 0.4);
-  color: #ffffff;
-}
-
-.story-autoplay-pill.is-active {
-  border-color: rgba(0, 240, 255, 0.5);
-  color: var(--accent-cyan);
-  background: rgba(0, 240, 255, 0.05);
-}
-
-.autoplay-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  transition: all 0.3s ease;
-}
-
-.story-autoplay-pill.is-active .autoplay-dot {
-  background: var(--accent-cyan);
-  box-shadow: 0 0 8px var(--accent-cyan);
-  animation: pulseDot 2s infinite ease-in-out;
 }
 
 /* ==========================================================================

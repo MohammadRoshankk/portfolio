@@ -20,321 +20,101 @@ function easeInOut(t) {
 }
 
 // ==========================================================================
-// 1. PROCEDURAL 3D FORM GENERATORS (CLASSY MR MONOGRAM & 3D TYPOGRAPHY)
+// 1. PROCEDURAL 3D FORM GENERATORS (4 HIGH-FIDELITY CHAPTER FORMATIONS)
 // ==========================================================================
 const FormGenerators = {
-  // Classy 3D "MR" Monogram with luxury geometric diamond/circle badge
-  monogramMR(count) {
-    const offscreen = document.createElement('canvas');
-    offscreen.width = 800;
-    offscreen.height = 800;
-    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
-
-    const cx = offscreen.width / 2;
-    const cy = offscreen.height / 2;
-
-    // Draw luxury outer geometric circular badge
-    ctx.strokeStyle = 'rgba(0, 240, 255, 0.75)';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 280, 0, PI2);
-    ctx.stroke();
-
-    // Subtle inner luxury diamond accent
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - 305);
-    ctx.lineTo(cx + 305, cy);
-    ctx.lineTo(cx, cy + 305);
-    ctx.lineTo(cx - 305, cy);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Bold luxury "MR" monogram typography
-    ctx.font = 'bold 220px "Syne", "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('MR', cx, cy - 10);
-
-    // Subtle subtext "MOHAMMAD ROSHAN"
-    ctx.font = '600 24px "Space Mono", monospace';
-    ctx.fillStyle = 'rgba(0, 240, 255, 0.9)';
-    ctx.letterSpacing = '6px';
-    ctx.fillText('MOHAMMAD ROSHAN', cx, cy + 130);
-
-    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
-    const points = [];
-
-    const step = 4;
-    for (let y = 0; y < offscreen.height; y += step) {
-      for (let x = 0; x < offscreen.width; x += step) {
-        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
-        if (alpha > 80) {
-          // Layered 3D depth for sculptural physical weight
-          points.push(
-            (x - cx) / 450,
-            (cy - y) / 450,
-            rand(-0.12, 0.12)
-          );
-        }
-      }
-    }
-
-    const target = new Float32Array(count * 3);
-    const validCount = points.length / 3 || 1;
-
-    for (let i = 0; i < count; i++) {
-      const srcIdx = (i % validCount) * 3;
-      target[i * 3] = (points[srcIdx] || 0) + rand(-0.005, 0.005);
-      target[i * 3 + 1] = (points[srcIdx + 1] || 0) + rand(-0.005, 0.005);
-      target[i * 3 + 2] = (points[srcIdx + 2] || 0) + rand(-0.008, 0.008);
-    }
-
-    return target;
-  },
-
-  // 3D Stacked Volumetric Typography: "MOHAMMAD ROSHAN"
-  fullName(count) {
-    const offscreen = document.createElement('canvas');
-    offscreen.width = 1200;
-    offscreen.height = 600;
-    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
-
-    const cx = offscreen.width / 2;
-    const cy = offscreen.height / 2;
-
-    // Stacked high-impact editorial typography
-    ctx.font = 'bold 125px "Syne", "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('MOHAMMAD', cx, cy - 80);
-    ctx.fillText('ROSHAN', cx, cy + 65);
-
-    // Accent line
-    ctx.strokeStyle = '#00f0ff';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(cx - 240, cy + 155);
-    ctx.lineTo(cx + 240, cy + 155);
-    ctx.stroke();
-
-    ctx.font = '500 22px "Space Mono", monospace';
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.9)';
-    ctx.fillText('AI & DATA ARCHITECT', cx, cy + 195);
-
-    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
-    const points = [];
-
-    const step = 4;
-    for (let y = 0; y < offscreen.height; y += step) {
-      for (let x = 0; x < offscreen.width; x += step) {
-        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
-        if (alpha > 85) {
-          points.push(
-            (x - cx) / 500,
-            (cy - y) / 500,
-            rand(-0.09, 0.09)
-          );
-        }
-      }
-    }
-
-    const target = new Float32Array(count * 3);
-    const validCount = points.length / 3 || 1;
-
-    for (let i = 0; i < count; i++) {
-      const srcIdx = (i % validCount) * 3;
-      target[i * 3] = (points[srcIdx] || 0) + rand(-0.005, 0.005);
-      target[i * 3 + 1] = (points[srcIdx + 1] || 0) + rand(-0.005, 0.005);
-      target[i * 3 + 2] = (points[srcIdx + 2] || 0) + rand(-0.006, 0.006);
-    }
-
-    return target;
-  },
-
-  // 3D "AI & DATA" Systems Matrix
-  aiData(count) {
-    const offscreen = document.createElement('canvas');
-    offscreen.width = 1100;
-    offscreen.height = 500;
-    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
-
-    const cx = offscreen.width / 2;
-    const cy = offscreen.height / 2;
-
-    ctx.font = 'bold 120px "Syne", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('AI & DATA', cx, cy - 40);
-
-    ctx.font = 'bold 44px "Space Mono", monospace';
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillText('SYSTEMS ARCHITECT', cx, cy + 60);
-
-    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
-    const textPoints = [];
-
-    const step = 4;
-    for (let y = 0; y < offscreen.height; y += step) {
-      for (let x = 0; x < offscreen.width; x += step) {
-        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
-        if (alpha > 90) {
-          textPoints.push(
-            (x - cx) / 460,
-            (cy - y) / 460,
-            rand(-0.08, 0.08)
-          );
-        }
-      }
-    }
-
-    const target = new Float32Array(count * 3);
-    const validCount = textPoints.length / 3 || 1;
-    const torusPortion = Math.floor(count * 0.35);
-
-    for (let i = 0; i < count; i++) {
-      if (i < count - torusPortion) {
-        const srcIdx = (i % validCount) * 3;
-        target[i * 3] = (textPoints[srcIdx] || 0) + rand(-0.005, 0.005);
-        target[i * 3 + 1] = (textPoints[srcIdx + 1] || 0) + rand(-0.005, 0.005);
-        target[i * 3 + 2] = (textPoints[srcIdx + 2] || 0) + rand(-0.006, 0.006);
-      } else {
-        // Surrounding orbital neural ring
-        const u = Math.random() * PI2;
-        const v = Math.random() * PI2;
-        const R = 0.85 + 0.08 * Math.cos(v);
-        target[i * 3] = R * Math.cos(u);
-        target[i * 3 + 1] = 0.08 * Math.sin(v) + rand(-0.02, 0.02);
-        target[i * 3 + 2] = R * Math.sin(u) * 0.4 + rand(-0.08, 0.08);
-      }
-    }
-
-    return target;
-  },
-
-  // 3D "CREATIVE ENGINEER" Convergence with Starfield
-  creative(count) {
-    const offscreen = document.createElement('canvas');
-    offscreen.width = 1100;
-    offscreen.height = 500;
-    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
-
-    const cx = offscreen.width / 2;
-    const cy = offscreen.height / 2;
-
-    ctx.font = 'bold 110px "Syne", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('CREATIVE', cx, cy - 45);
-
-    ctx.font = 'bold 95px "Syne", sans-serif';
-    ctx.fillStyle = '#00f0ff';
-    ctx.fillText('ENGINEER', cx, cy + 65);
-
-    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
-    const textPoints = [];
-
-    const step = 4;
-    for (let y = 0; y < offscreen.height; y += step) {
-      for (let x = 0; x < offscreen.width; x += step) {
-        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
-        if (alpha > 90) {
-          textPoints.push(
-            (x - cx) / 460,
-            (cy - y) / 460,
-            rand(-0.08, 0.08)
-          );
-        }
-      }
-    }
-
-    const target = new Float32Array(count * 3);
-    const validCount = textPoints.length / 3 || 1;
-    const galaxyPortion = Math.floor(count * 0.4);
-
-    for (let i = 0; i < count; i++) {
-      if (i < count - galaxyPortion) {
-        const srcIdx = (i % validCount) * 3;
-        target[i * 3] = (textPoints[srcIdx] || 0) + rand(-0.005, 0.005);
-        target[i * 3 + 1] = (textPoints[srcIdx + 1] || 0) + rand(-0.005, 0.005);
-        target[i * 3 + 2] = (textPoints[srcIdx + 2] || 0) + rand(-0.006, 0.006);
-      } else {
-        // Celestial spiral halo
-        const angle = Math.random() * PI2 * 3;
-        const rad = 0.5 + Math.random() * 0.75;
-        target[i * 3] = rad * Math.cos(angle) + rand(-0.03, 0.03);
-        target[i * 3 + 1] = rad * Math.sin(angle) * 0.45 + rand(-0.03, 0.03);
-        target[i * 3 + 2] = rand(-0.25, 0.25);
-      }
-    }
-
-    return target;
-  },
-
-  // 3D Rotating Data Cube with layered inner grid
-  cube(count, target) {
-    for (let i = 0; i < count; i++) {
-      const u = (Math.floor(Math.random() * 14) / 13 - 0.5) * 0.6 + rand(-0.01, 0.01);
-      const v = (Math.floor(Math.random() * 14) / 13 - 0.5) * 0.6 + rand(-0.01, 0.01);
-      const face = i % 2 === 0 ? 0.3 : -0.3;
-      const axis = (i >> 1) % 3;
-
-      const x = axis === 0 ? face : axis === 1 ? u : v;
-      const y = axis === 0 ? u : axis === 1 ? face : v;
-      const z = axis === 0 ? v : axis === 1 ? u : face;
-
-      target[i * 3] = x;
-      target[i * 3 + 1] = y;
-      target[i * 3 + 2] = z;
-    }
-  },
-
-  // 3D Data Pipeline Double Helix
-  helix(count, target) {
-    for (let i = 0; i < count; i++) {
-      const a = Math.random();
-      if (i % 5 < 2) {
-        const angle = a * PI2 * 2 + (i % 5) * Math.PI;
-        target[i * 3] = Math.cos(angle) * 0.18 + rand(-0.008, 0.008);
-        target[i * 3 + 1] = (a - 0.5) * 0.85;
-        target[i * 3 + 2] = Math.sin(angle) * 0.18 + rand(-0.008, 0.008);
-      } else {
-        const step = Math.floor(a * 26) / 26;
-        const angle = step * PI2 * 2;
-        const radius = rand(0.05, 0.18);
-        target[i * 3] = Math.cos(angle) * radius;
-        target[i * 3 + 1] = (step - 0.5) * 0.85;
-        target[i * 3 + 2] = Math.sin(angle) * radius;
-      }
-    }
-  },
-
-  // Ambient Celestial Constellation Ring
+  // Chapter 01: Raw Signals & Chaos — Cosmic Spherical Galactic Nebula
   celestial(count, target) {
     for (let i = 0; i < count; i++) {
       const u = Math.random() * PI2;
-      const r = 0.55 + Math.random() * 0.75;
-      target[i * 3] = r * Math.cos(u) + rand(-0.04, 0.04);
-      target[i * 3 + 1] = r * Math.sin(u) * 0.5 + rand(-0.04, 0.04);
-      target[i * 3 + 2] = rand(-0.35, 0.35);
+      const v = Math.acos(2 * Math.random() - 1);
+      const r = Math.pow(Math.random(), 0.62) * 0.95 + 0.12;
+      const spiral = r * 1.85;
+      const theta = u + spiral;
+
+      target[i * 3] = r * Math.sin(v) * Math.cos(theta) + rand(-0.025, 0.025);
+      target[i * 3 + 1] = r * Math.sin(v) * Math.sin(theta) * 0.65 + rand(-0.025, 0.025);
+      target[i * 3 + 2] = r * Math.cos(v) * 0.75 + rand(-0.025, 0.025);
+    }
+  },
+
+  // Chapter 02: Neural Synapses — 3D Cybernetic Synaptic Torus & Interconnected Lattice
+  torus(count, target) {
+    for (let i = 0; i < count; i++) {
+      const u = Math.random() * PI2;
+      const v = Math.random() * PI2;
+      const isCoreNode = i % 8 === 0;
+      const R = isCoreNode ? 0.38 : 0.64;
+      const r = isCoreNode ? 0.11 : 0.22;
+      const twist = Math.sin(u * 5.0) * 0.045;
+
+      target[i * 3] = (R + (r + twist) * Math.cos(v)) * Math.cos(u);
+      target[i * 3 + 1] = (r + twist) * Math.sin(v);
+      target[i * 3 + 2] = (R + (r + twist) * Math.cos(v)) * Math.sin(u);
+    }
+  },
+
+  // Chapter 03: Distributed Matrix — 3D Architectural Coordinate Hyper-Cube
+  cube(count, target) {
+    for (let i = 0; i < count; i++) {
+      if (i % 6 < 4) {
+        // Precision layered outer grid faces
+        const gridRes = 14;
+        const u = (Math.floor(Math.random() * gridRes) / (gridRes - 1) - 0.5) * 0.82;
+        const v = (Math.floor(Math.random() * gridRes) / (gridRes - 1) - 0.5) * 0.82;
+        const face = (i % 2 === 0 ? 0.41 : -0.41);
+        const axis = Math.floor(Math.random() * 3);
+
+        target[i * 3] = axis === 0 ? face : axis === 1 ? u : v;
+        target[i * 3 + 1] = axis === 0 ? u : axis === 1 ? face : v;
+        target[i * 3 + 2] = axis === 2 ? face : axis === 1 ? u : v;
+      } else {
+        // Internal Cartesian distribution lines (streaming pipelines)
+        const axis = i % 3;
+        const t = (Math.random() - 0.5) * 0.82;
+        const crossU = rand(-0.08, 0.08);
+        const crossV = rand(-0.08, 0.08);
+
+        target[i * 3] = axis === 0 ? t : crossU;
+        target[i * 3 + 1] = axis === 1 ? t : crossV;
+        target[i * 3 + 2] = axis === 2 ? t : crossU;
+      }
+    }
+  },
+
+  // Chapter 04: Convergence — Double Helix & Mathematical Horizon Wave
+  convergence(count, target) {
+    for (let i = 0; i < count; i++) {
+      if (i % 4 < 2) {
+        // Intertwining double helix: AI & Data systems synthesis
+        const a = Math.random();
+        const strand = i % 2 === 0 ? 0 : Math.PI;
+        const angle = a * PI2 * 3.0 + strand;
+        const radius = 0.32 + Math.sin(a * PI2) * 0.07;
+
+        target[i * 3] = Math.cos(angle) * radius + rand(-0.012, 0.012);
+        target[i * 3 + 1] = (a - 0.5) * 0.95;
+        target[i * 3 + 2] = Math.sin(angle) * radius + rand(-0.012, 0.012);
+      } else {
+        // Undulating mathematical horizon wave
+        const side = Math.ceil(Math.sqrt(count / 2));
+        const u = ((i % side) / side - 0.5) * 1.35;
+        const v = (Math.floor(i / side) / side - 0.5) * 1.35;
+        const wave = Math.sin(u * 6.0) * 0.10 + Math.cos(v * 5.0) * 0.08;
+
+        target[i * 3] = u;
+        target[i * 3 + 1] = wave - 0.28;
+        target[i * 3 + 2] = v;
+      }
     }
   }
 };
 
 // ==========================================================================
-// 2. GLSL SHADER DEFINITIONS FOR DUAL-MODE 3D ENGINE
+// 2. GLSL SHADER DEFINITIONS FOR SCROLL-DRIVEN POINT-CLOUD MORPHING
 // ==========================================================================
 const vertexShader = `
-  uniform vec4 uFrom;       // cx, cy, size px, kind
-  uniform vec4 uTo;
-  uniform vec2 uFromRot;
-  uniform vec2 uToRot;
-  uniform float uMix;
+  uniform float uScrollProgress; // 0.0 to 3.0 continuous float
   uniform float uTime;
   uniform float uDot;
   uniform vec2 uViewport;
@@ -342,9 +122,13 @@ const vertexShader = `
   uniform float uMouseForce;
   uniform float uSwirl;
   uniform float uAlpha;
+  uniform vec4 uFrame; // cx, cy, size px, aspect
+  uniform vec2 uRotation;
 
-  attribute vec3 aFrom;
-  attribute vec3 aTo;
+  attribute vec3 aPos1;
+  attribute vec3 aPos2;
+  attribute vec3 aPos3;
+  attribute vec3 aPos4;
   attribute float aLum;
   attribute vec3 aSeed;
 
@@ -352,59 +136,82 @@ const vertexShader = `
   varying float vSeed;
   varying float vAlpha;
 
-  const float CAMERA = 2.2;
+  const float CAMERA = 2.4;
 
-  float easeInOut(float t) {
-    return t < 0.5 ? 2.0 * t * t : -1.0 + (4.0 - 2.0 * t) * t;
+  float easeInOutCubic(float t) {
+    return t < 0.5 ? 4.0 * t * t * t : 1.0 - pow(-2.0 * t + 2.0, 3.0) / 2.0;
   }
 
-  vec3 rotate(vec3 p, vec2 r) {
+  vec3 rotate3D(vec3 p, vec2 r) {
     float cy = cos(r.y), sy = sin(r.y);
     p = vec3(p.x * cy + p.z * sy, p.y, -p.x * sy + p.z * cy);
     float cx = cos(r.x), sx = sin(r.x);
     return vec3(p.x, p.y * cx - p.z * sx, p.y * sx + p.z * cx);
   }
 
-  vec4 place(vec3 local, vec4 frame, vec2 rot) {
-    vec3 p = rotate(local, rot);
-    p.z = min(p.z, CAMERA - 0.3);
-    float persp = CAMERA / (CAMERA - p.z);
-    vec2 screen = frame.xy + vec2(p.x, -p.y) * persp * frame.z;
-    float shade = clamp(0.5 + p.z * 1.2, 0.25, 1.0);
-    return vec4(screen, uDot * (0.6 + aSeed.y * 0.8) * persp, shade);
-  }
-
   void main() {
     vLum = aLum;
     vSeed = aSeed.z;
 
-    vec3 dir = normalize(aSeed * 2.0 - 1.0 + 0.0001);
-    float order = aSeed.x * 0.35;
-    float raw = clamp((uMix - order) / 0.65, 0.0, 1.0);
-    float t = easeInOut(raw);
-    float flight = sin(t * 3.14159);
+    float p = clamp(uScrollProgress, 0.0, 3.0);
+    vec3 pFrom = aPos1;
+    vec3 pTo = aPos2;
+    float tRaw = 0.0;
 
-    vec4 a = place(aFrom, uFrom, uFromRot);
-    vec4 b = place(aTo, uTo, uToRot);
-
-    vec2 screen = mix(a.xy, b.xy, t);
-    screen += dir.xy * flight * uViewport.y * uSwirl;
-
-    float size = mix(a.z, b.z, t);
-    float alpha = mix(a.w, b.w, t);
-
-    // Subtle natural organic drift
-    screen += vec2(sin(uTime * 0.6 + aSeed.y * 6.283), cos(uTime * 0.5 + aSeed.z * 6.283)) * 1.4;
-
-    // Interactive Mouse Repulsion & Swirl
-    vec2 mouseOffset = screen - uMouse;
-    float mouseDist = length(mouseOffset);
-    if (mouseDist < 220.0 && mouseDist > 0.1) {
-      float repel = (1.0 - mouseDist / 220.0);
-      screen += normalize(mouseOffset) * repel * repel * 38.0 * uMouseForce;
+    if (p <= 1.0) {
+      pFrom = aPos1;
+      pTo = aPos2;
+      tRaw = p;
+    } else if (p <= 2.0) {
+      pFrom = aPos2;
+      pTo = aPos3;
+      tRaw = p - 1.0;
+    } else {
+      pFrom = aPos3;
+      pTo = aPos4;
+      tRaw = p - 2.0;
     }
 
-    // Convert to WebGL NDC
+    // Staggered organic departure based on individual particle seed
+    float order = aSeed.x * 0.28;
+    float raw = clamp((tRaw - order) / 0.72, 0.0, 1.0);
+    float t = easeInOutCubic(raw);
+    float flight = sin(t * 3.14159265);
+
+    // Continuous 3D world-space position interpolation
+    vec3 pos = mix(pFrom, pTo, t);
+
+    // Vapour-mist flight vortex during transitions
+    vec3 flightDir = normalize(aSeed * 2.0 - 1.0 + 0.0001);
+    pos += flightDir * flight * uSwirl;
+
+    // Subtle natural organic ambient breathing
+    pos += vec3(
+      sin(uTime * 0.55 + aSeed.y * 6.283) * 0.016,
+      cos(uTime * 0.50 + aSeed.z * 6.283) * 0.016,
+      sin(uTime * 0.45 + aSeed.x * 6.283) * 0.016
+    );
+
+    // Perspective spatial rotation
+    vec3 pRot = rotate3D(pos, uRotation);
+    pRot.z = min(pRot.z, CAMERA - 0.25);
+
+    // Perspective projection
+    float persp = CAMERA / (CAMERA - pRot.z);
+    vec2 screen = uFrame.xy + vec2(pRot.x, -pRot.y) * persp * uFrame.z;
+
+    // Subtle magnetic cursor deflection
+    vec2 mouseDiff = screen - uMouse;
+    float mouseDist = length(mouseDiff);
+    if (mouseDist < 200.0 && mouseDist > 0.1) {
+      float repel = (1.0 - mouseDist / 200.0);
+      screen += normalize(mouseDiff) * (repel * repel * 24.0 * uMouseForce);
+    }
+
+    // Depth shading & point size
+    float depthShade = clamp(0.55 + pRot.z * 1.1, 0.25, 1.0);
+    float ptSize = uDot * (0.65 + aSeed.y * 0.7) * persp;
+
     gl_Position = vec4(
       (screen.x / uViewport.x) * 2.0 - 1.0,
       1.0 - (screen.y / uViewport.y) * 2.0,
@@ -412,14 +219,15 @@ const vertexShader = `
       1.0
     );
 
-    vAlpha = alpha * uAlpha;
-    gl_PointSize = size * 1.25;
+    vAlpha = depthShade * uAlpha;
+    gl_PointSize = ptSize * 1.25;
   }
 `;
 
 const fragmentShader = `
   uniform vec3 uColor;
   uniform vec3 uAccent;
+  uniform vec3 uAccent2;
   varying float vLum;
   varying float vSeed;
   varying float vAlpha;
@@ -428,17 +236,17 @@ const fragmentShader = `
     float d = length(gl_PointCoord - 0.5);
     if (d > 0.5) discard;
 
-    vec3 color = uColor * (0.35 + 0.65 * vLum);
-    // Cyan accent on ~2.5% of stars
-    color = mix(color, uAccent, step(0.975, vSeed));
+    vec3 color = uColor * (0.40 + 0.60 * vLum);
+    color = mix(color, uAccent, step(0.970, vSeed));
+    color = mix(color, uAccent2, step(0.992, vSeed));
 
-    float mask = smoothstep(0.5, 0.22, d);
+    float mask = smoothstep(0.5, 0.20, d);
     gl_FragColor = vec4(color, mask * vAlpha);
   }
 `;
 
 // ==========================================================================
-// 3. BACKGROUND & 3D JOURNEY WEBGL ENGINE
+// 3. CONTINUOUS SCROLL-DRIVEN 3D PARTICLE ENGINE
 // ==========================================================================
 function initBackgroundEngine() {
   const canvas = document.getElementById('webgl-canvas');
@@ -459,20 +267,18 @@ function initBackgroundEngine() {
 
   const COUNT = window.innerWidth < 768 ? 6000 : 12000;
 
-  // Initialize distinct 3D forms
+  // Initialize the 4 formations
   const forms = {
-    mr: FormGenerators.monogramMR(COUNT),
-    name: FormGenerators.fullName(COUNT),
-    aiData: FormGenerators.aiData(COUNT),
-    creative: FormGenerators.creative(COUNT),
+    celestial: new Float32Array(COUNT * 3),
+    torus: new Float32Array(COUNT * 3),
     cube: new Float32Array(COUNT * 3),
-    helix: new Float32Array(COUNT * 3),
-    celestial: new Float32Array(COUNT * 3)
+    convergence: new Float32Array(COUNT * 3)
   };
 
-  FormGenerators.cube(COUNT, forms.cube);
-  FormGenerators.helix(COUNT, forms.helix);
   FormGenerators.celestial(COUNT, forms.celestial);
+  FormGenerators.torus(COUNT, forms.torus);
+  FormGenerators.cube(COUNT, forms.cube);
+  FormGenerators.convergence(COUNT, forms.convergence);
 
   const seeds = new Float32Array(COUNT * 3);
   const lums = new Float32Array(COUNT);
@@ -485,31 +291,27 @@ function initBackgroundEngine() {
 
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(COUNT * 3), 3));
-  geometry.setAttribute('aFrom', new THREE.BufferAttribute(new Float32Array(COUNT * 3), 3));
-  geometry.setAttribute('aTo', new THREE.BufferAttribute(new Float32Array(COUNT * 3), 3));
+  geometry.setAttribute('aPos1', new THREE.BufferAttribute(forms.celestial, 3));
+  geometry.setAttribute('aPos2', new THREE.BufferAttribute(forms.torus, 3));
+  geometry.setAttribute('aPos3', new THREE.BufferAttribute(forms.cube, 3));
+  geometry.setAttribute('aPos4', new THREE.BufferAttribute(forms.convergence, 3));
   geometry.setAttribute('aLum', new THREE.BufferAttribute(lums, 1));
   geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 3));
 
-  geometry.attributes.aFrom.array.set(forms.mr);
-  geometry.attributes.aTo.array.set(forms.name);
-  geometry.attributes.aFrom.needsUpdate = true;
-  geometry.attributes.aTo.needsUpdate = true;
-
   const uniforms = {
-    uFrom: { value: new THREE.Vector4(0, 0, 0, 1) },
-    uTo: { value: new THREE.Vector4(0, 0, 0, 1) },
-    uFromRot: { value: new THREE.Vector2(0, 0) },
-    uToRot: { value: new THREE.Vector2(0, 0) },
-    uMix: { value: 0 },
-    uTime: { value: 0 },
-    uDot: { value: 1.8 },
+    uScrollProgress: { value: 0.0 },
+    uTime: { value: 0.0 },
+    uDot: { value: 2.2 },
     uViewport: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
     uMouse: { value: new THREE.Vector2(-999, -999) },
-    uMouseForce: { value: 0.2 },
-    uSwirl: { value: 0.14 },
-    uAlpha: { value: 0.45 },
+    uMouseForce: { value: 0.8 },
+    uSwirl: { value: 0.22 },
+    uAlpha: { value: 0.90 },
+    uFrame: { value: new THREE.Vector4(window.innerWidth * 0.5, window.innerHeight * 0.44, Math.min(window.innerHeight * 0.65, window.innerWidth * 0.58), 1.0) },
+    uRotation: { value: new THREE.Vector2(0.2, 0.0) },
     uColor: { value: new THREE.Color('#94a3b8') },
-    uAccent: { value: new THREE.Color('#00f0ff') }
+    uAccent: { value: new THREE.Color('#00f0ff') },
+    uAccent2: { value: new THREE.Color('#38bdf8') }
   };
 
   const material = new THREE.ShaderMaterial({
@@ -524,38 +326,20 @@ function initBackgroundEngine() {
   pointsMesh.frustumCulled = false;
   scene.add(pointsMesh);
 
-  // Site Mode Scroll Sections
-  const sections = [
-    { id: '#hero', form: 'mr', tilt: 0.1, spin: 0.05 },
-    { id: '#projects', form: 'cube', tilt: 0.55, spin: 0.2 },
-    { id: '#skills', form: 'helix', tilt: 0.35, spin: 0.25 },
-    { id: '#about', form: 'aiData', tilt: 0.2, spin: 0.1 },
-    { id: '#contact', form: 'name', tilt: 0, spin: 0 }
-  ];
-
-  // 3D Journey Chapters: 1: Classy MR, 2: Full Name, 3: AI & Data, 4: Creative Engineer
-  const chapterForms = ['mr', 'name', 'aiData', 'creative'];
-
   let currentMode = 'site';
-  let storyChapter = 1;
-  let isTransitioning = false;
-  let transitionProgress = 0;
-  const transitionDuration = 1100;
-  let transitionStartTime = 0;
-  let fromFormName = 'mr';
-  let toFormName = 'mr';
+  let targetScrollProgress = 0.0;
+  let currentScrollProgress = 0.0;
+  let activeChapterIndex = 0;
 
-  let currentFromIdx = 0;
-  let currentToIdx = 1;
-
-  // Mouse State for smooth steering and parallax
   const mouse = {
     targetX: window.innerWidth / 2,
     targetY: window.innerHeight / 2,
     x: window.innerWidth / 2,
     y: window.innerHeight / 2,
     normX: 0,
-    normY: 0
+    normY: 0,
+    curNormX: 0,
+    curNormY: 0
   };
 
   window.addEventListener('mousemove', (e) => {
@@ -567,115 +351,76 @@ function initBackgroundEngine() {
 
   let clock = new THREE.Clock();
 
-  function triggerChapterTransition(targetChapter) {
-    if (targetChapter < 1 || targetChapter > 4) return;
-    const fromName = chapterForms[storyChapter - 1];
-    const toName = chapterForms[targetChapter - 1];
-
-    fromFormName = fromName;
-    toFormName = toName;
-    storyChapter = targetChapter;
-
-    geometry.attributes.aFrom.array.set(forms[fromName]);
-    geometry.attributes.aTo.array.set(forms[toName]);
-    geometry.attributes.aFrom.needsUpdate = true;
-    geometry.attributes.aTo.needsUpdate = true;
-
-    isTransitioning = true;
-    transitionStartTime = performance.now();
-    transitionProgress = 0;
-
-    // Synchronize DOM UI elements
-    document.querySelectorAll('.story-chapter').forEach((ch) => {
-      ch.classList.toggle('active-chapter', ch.getAttribute('data-chapter') === String(targetChapter));
-    });
-    document.querySelectorAll('.story-dot').forEach((dot) => {
-      dot.classList.toggle('active', dot.getAttribute('data-index') === String(targetChapter));
-    });
-
-    playStoryTone(280 + targetChapter * 110);
-  }
-
   function render() {
     requestAnimationFrame(render);
     const time = clock.getElapsedTime();
     const vh = window.innerHeight;
     const vw = window.innerWidth;
 
-    // Smooth mouse lerp
-    mouse.x += (mouse.targetX - mouse.x) * 0.08;
-    mouse.y += (mouse.targetY - mouse.y) * 0.08;
+    mouse.x += (mouse.targetX - mouse.x) * 0.1;
+    mouse.y += (mouse.targetY - mouse.y) * 0.1;
+    mouse.curNormX += (mouse.normX - mouse.curNormX) * 0.07;
+    mouse.curNormY += (mouse.normY - mouse.curNormY) * 0.07;
+
     uniforms.uMouse.value.set(mouse.x, mouse.y);
     uniforms.uTime.value = time;
     uniforms.uViewport.value.set(vw, vh);
 
     if (currentMode === 'story') {
-      // --- 3D JOURNEY MODE ---
-      if (isTransitioning) {
-        const elapsed = performance.now() - transitionStartTime;
-        transitionProgress = Math.min(elapsed / transitionDuration, 1.0);
-        uniforms.uMix.value = transitionProgress;
-        uniforms.uSwirl.value = 0.28;
+      // --- 3D JOURNEY MODE (Scroll-Driven Point Cloud Morphing) ---
+      currentScrollProgress += (targetScrollProgress - currentScrollProgress) * 0.085;
+      uniforms.uScrollProgress.value = currentScrollProgress;
 
-        if (transitionProgress >= 1.0) {
-          isTransitioning = false;
-          geometry.attributes.aFrom.array.set(forms[toFormName]);
-          geometry.attributes.aFrom.needsUpdate = true;
-          uniforms.uMix.value = 0.0;
-          uniforms.uSwirl.value = 0.12;
-        }
-      } else {
-        uniforms.uMix.value = 0.0;
-        uniforms.uSwirl.value = 0.12;
-      }
+      const cx = vw * 0.5;
+      const cy = vh * 0.44;
+      const size = Math.min(vh * 0.66, vw * 0.58);
+      uniforms.uFrame.value.set(cx, cy, size, 1.0);
 
-      const centerX = vw * 0.5;
-      const centerY = vh * 0.44;
-      const scale = toFormName === 'name' ? Math.min(vh * 0.55, vw * 0.85) : Math.min(vh * 0.65, vw * 0.55);
+      const rotX = 0.22 + mouse.curNormY * 0.35;
+      const rotY = time * 0.12 + mouse.curNormX * 0.45;
+      uniforms.uRotation.value.set(rotX, rotY);
 
-      uniforms.uFrom.value.set(centerX, centerY, scale, 1);
-      uniforms.uTo.value.set(centerX, centerY, scale, 1);
-
-      // Interactive 3D tilt & rotation steered by mouse
-      const rotTiltX = 0.2 + mouse.normY * 0.35;
-      const rotTiltY = time * 0.15 + mouse.normX * 0.45;
-
-      uniforms.uFromRot.value.set(rotTiltX, rotTiltY);
-      uniforms.uToRot.value.set(rotTiltX, rotTiltY);
-
-      uniforms.uAlpha.value = 0.95;
+      uniforms.uAlpha.value = 0.92;
       uniforms.uDot.value = 2.4;
       uniforms.uMouseForce.value = 1.0;
+      uniforms.uSwirl.value = 0.24;
+
+      // Synchronize Chapter text and dot indicators
+      const newActiveIdx = Math.round(currentScrollProgress);
+      if (newActiveIdx !== activeChapterIndex) {
+        activeChapterIndex = newActiveIdx;
+        playStoryTone(280 + activeChapterIndex * 110);
+      }
+
+      const chapters = document.querySelectorAll('.story-chapter');
+      chapters.forEach((ch, idx) => {
+        ch.classList.toggle('active-chapter', idx === activeChapterIndex);
+      });
+
+      const dots = document.querySelectorAll('.story-dot');
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === activeChapterIndex);
+      });
     } else {
       // --- SITE EXPERIENCE MODE ---
       const scrollY = window.scrollY;
       const totalHeight = document.documentElement.scrollHeight - vh;
-      const scrollProgress = totalHeight > 0 ? scrollY / totalHeight : 0;
-      const sectionIndex = scrollProgress * (sections.length - 1);
-      const fromIdx = Math.floor(sectionIndex);
-      const toIdx = Math.min(sections.length - 1, fromIdx + 1);
-      const mixRatio = sectionIndex - fromIdx;
+      const scrollRatio = totalHeight > 0 ? scrollY / totalHeight : 0;
+      const siteProgress = scrollRatio * 3.0;
 
-      if (fromIdx !== currentFromIdx || toIdx !== currentToIdx) {
-        currentFromIdx = fromIdx;
-        currentToIdx = toIdx;
+      currentScrollProgress += (siteProgress - currentScrollProgress) * 0.1;
+      uniforms.uScrollProgress.value = currentScrollProgress;
 
-        geometry.attributes.aFrom.array.set(forms[sections[fromIdx].form]);
-        geometry.attributes.aTo.array.set(forms[sections[toIdx].form]);
-        geometry.attributes.aFrom.needsUpdate = true;
-        geometry.attributes.aTo.needsUpdate = true;
-      }
+      uniforms.uFrame.value.set(vw * 0.5, vh * 0.5, Math.min(vh * 0.7, vw * 0.7), 1.0);
 
-      uniforms.uFrom.value.set(vw * 0.5, vh * 0.5, Math.min(vh * 0.7, vw * 0.7), 1);
-      uniforms.uTo.value.set(vw * 0.5, vh * 0.5, Math.min(vh * 0.7, vw * 0.7), 1);
+      const rotX = 0.18 + mouse.curNormY * 0.15;
+      const rotY = time * 0.08 + mouse.curNormX * 0.2;
+      uniforms.uRotation.value.set(rotX, rotY);
 
-      uniforms.uFromRot.value.set(sections[fromIdx].tilt, time * sections[fromIdx].spin);
-      uniforms.uToRot.value.set(sections[toIdx].tilt, time * sections[toIdx].spin);
-
-      uniforms.uMix.value = mixRatio;
       uniforms.uAlpha.value = 0.42;
-      uniforms.uDot.value = 1.8;
-      uniforms.uMouseForce.value = 0.2;
+      uniforms.uDot.value = 1.7;
+      uniforms.uMouseForce.value = 0.25;
+      uniforms.uSwirl.value = 0.16;
     }
 
     renderer.render(scene, camera);
@@ -692,24 +437,32 @@ function initBackgroundEngine() {
     setMode(mode) {
       currentMode = mode;
       if (mode === 'story') {
-        triggerChapterTransition(1);
+        targetScrollProgress = 0.0;
+        currentScrollProgress = 0.0;
       }
     },
-    goToChapter(ch) {
-      triggerChapterTransition(ch);
+    addScroll(delta) {
+      targetScrollProgress = Math.max(0.0, Math.min(3.0, targetScrollProgress + delta));
+    },
+    scrollToChapter(idx) {
+      targetScrollProgress = Math.max(0.0, Math.min(3.0, idx));
     },
     nextChapter() {
-      let next = storyChapter + 1;
-      if (next > 4) next = 1;
-      triggerChapterTransition(next);
+      if (currentScrollProgress >= 2.9) {
+        targetScrollProgress = 0.0;
+      } else {
+        targetScrollProgress = Math.min(3.0, Math.floor(currentScrollProgress + 1.05));
+      }
     },
     prevChapter() {
-      let prev = storyChapter - 1;
-      if (prev < 1) prev = 4;
-      triggerChapterTransition(prev);
+      if (currentScrollProgress <= 0.1) {
+        targetScrollProgress = 3.0;
+      } else {
+        targetScrollProgress = Math.max(0.0, Math.ceil(currentScrollProgress - 1.05));
+      }
     },
-    getChapter() {
-      return storyChapter;
+    getProgress() {
+      return currentScrollProgress;
     }
   };
 }
@@ -817,36 +570,6 @@ function initModeSwitcher(engine) {
   const storyDots = document.querySelectorAll('.story-dot');
 
   let activeMode = 'site';
-  let autoPlayEnabled = true;
-  let autoPlayTimer = null;
-  const AUTOPLAY_INTERVAL_MS = 6800;
-
-  function resetAutoPlay() {
-    if (autoPlayTimer) clearInterval(autoPlayTimer);
-    if (!autoPlayEnabled || activeMode !== 'story') return;
-
-    autoPlayTimer = setInterval(() => {
-      if (activeMode === 'story') {
-        engine?.nextChapter();
-      }
-    }, AUTOPLAY_INTERVAL_MS);
-  }
-
-  const autoplayBtn = document.getElementById('story-autoplay-btn');
-  const autoplayLabel = document.getElementById('autoplay-label');
-
-  autoplayBtn?.addEventListener('click', () => {
-    autoPlayEnabled = !autoPlayEnabled;
-    autoplayBtn.classList.toggle('is-active', autoPlayEnabled);
-    if (autoplayLabel) {
-      autoplayLabel.textContent = autoPlayEnabled ? 'Auto Flow: ON' : 'Auto Flow: PAUSED';
-    }
-    if (autoPlayEnabled) {
-      resetAutoPlay();
-    } else if (autoPlayTimer) {
-      clearInterval(autoPlayTimer);
-    }
-  });
 
   function setMode(mode) {
     activeMode = mode;
@@ -858,7 +581,6 @@ function initModeSwitcher(engine) {
       document.body.classList.remove('mode-story');
       document.body.style.overflow = 'auto';
       window.history.replaceState(null, '', '?v=site');
-      if (autoPlayTimer) clearInterval(autoPlayTimer);
       engine?.setMode('site');
     } else {
       btnStory?.classList.add('active');
@@ -869,7 +591,6 @@ function initModeSwitcher(engine) {
       document.body.style.overflow = 'hidden';
       window.history.replaceState(null, '', '?v=story');
       engine?.setMode('story');
-      resetAutoPlay();
     }
   }
 
@@ -884,74 +605,51 @@ function initModeSwitcher(engine) {
     }, 100);
   });
 
-  // Story Next / Prev Controls
-  storyPrev?.addEventListener('click', () => {
-    engine?.prevChapter();
-    resetAutoPlay();
-  });
-  storyNext?.addEventListener('click', () => {
-    engine?.nextChapter();
-    resetAutoPlay();
-  });
+  // Continuous Trackpad / Mouse Wheel Scroll Morphing in 3D Journey
+  window.addEventListener('wheel', (e) => {
+    if (activeMode !== 'story') return;
+    const delta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 120);
+    engine?.addScroll(delta * 0.0016);
+  }, { passive: true });
 
+  // Continuous Touch Drag Morphing
+  let touchStartY = 0;
+  window.addEventListener('touchstart', (e) => {
+    if (activeMode !== 'story') return;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (activeMode !== 'story') return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = touchStartY - currentY;
+    touchStartY = currentY;
+    engine?.addScroll(deltaY * 0.0035);
+  }, { passive: true });
+
+  // Story Next / Prev Controls
+  storyPrev?.addEventListener('click', () => engine?.prevChapter());
+  storyNext?.addEventListener('click', () => engine?.nextChapter());
+
+  // Direct Chapter Dot Jumps
   storyDots.forEach((dot) => {
     dot.addEventListener('click', () => {
-      const idx = parseInt(dot.getAttribute('data-index'), 10);
-      if (!isNaN(idx)) {
-        engine?.goToChapter(idx);
-        resetAutoPlay();
-      }
+      const idx = parseInt(dot.getAttribute('data-index'), 10) - 1;
+      if (!isNaN(idx)) engine?.scrollToChapter(idx);
     });
   });
 
-  // Keyboard navigation for 3D Journey
+  // Keyboard Navigation
   window.addEventListener('keydown', (e) => {
     if (activeMode !== 'story') return;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
       e.preventDefault();
       engine?.nextChapter();
-      resetAutoPlay();
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
       engine?.prevChapter();
-      resetAutoPlay();
     }
   });
-
-  // Mouse Wheel navigation (debounced)
-  let lastWheelTime = 0;
-  window.addEventListener('wheel', (e) => {
-    if (activeMode !== 'story') return;
-    if (Date.now() - lastWheelTime < 650) return;
-    if (e.deltaY > 25) {
-      lastWheelTime = Date.now();
-      engine?.nextChapter();
-      resetAutoPlay();
-    } else if (e.deltaY < -25) {
-      lastWheelTime = Date.now();
-      engine?.prevChapter();
-      resetAutoPlay();
-    }
-  }, { passive: true });
-
-  // Touch Swipe navigation
-  let touchY = 0;
-  window.addEventListener('touchstart', (e) => {
-    if (activeMode !== 'story') return;
-    touchY = e.touches[0].clientY;
-  }, { passive: true });
-
-  window.addEventListener('touchend', (e) => {
-    if (activeMode !== 'story') return;
-    const dy = e.changedTouches[0].clientY - touchY;
-    if (dy < -45) {
-      engine?.nextChapter();
-      resetAutoPlay();
-    } else if (dy > 45) {
-      engine?.prevChapter();
-      resetAutoPlay();
-    }
-  }, { passive: true });
 
   // URL Initial State Detection
   const params = new URLSearchParams(window.location.search);
