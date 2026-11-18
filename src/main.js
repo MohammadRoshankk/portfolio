@@ -10,6 +10,7 @@
 
 import * as THREE from 'three';
 import { initPortraitReveal } from './portrait-reveal.js';
+import { STAGE04_POSITIONS, STAGE04_COLORS, STAGE04_LUMS, STAGE04_FEATURES } from './stage04-face-data.js';
 
 // --- MATH UTILITIES ---
 const PI2 = Math.PI * 2;
@@ -82,11 +83,32 @@ const FormGenerators = {
     }
   },
 
-  // Chapter 04: Convergence — Double Helix & Mathematical Horizon Wave
+  // Chapter 04: Stage 04 PoC — Mohammad Roshan 3D Facial Reconstruction Point Cloud
+  faceStage04(count, targetPos, targetCol, targetLum, targetFeat) {
+    for (let i = 0; i < count; i++) {
+      const srcIdx = count === 12000 ? i : (i * 2) % 12000;
+      targetPos[i * 3] = STAGE04_POSITIONS[srcIdx * 3];
+      targetPos[i * 3 + 1] = STAGE04_POSITIONS[srcIdx * 3 + 1];
+      targetPos[i * 3 + 2] = STAGE04_POSITIONS[srcIdx * 3 + 2];
+
+      if (targetCol) {
+        targetCol[i * 3] = STAGE04_COLORS[srcIdx * 3];
+        targetCol[i * 3 + 1] = STAGE04_COLORS[srcIdx * 3 + 1];
+        targetCol[i * 3 + 2] = STAGE04_COLORS[srcIdx * 3 + 2];
+      }
+      if (targetLum) {
+        targetLum[i] = STAGE04_LUMS[srcIdx];
+      }
+      if (targetFeat) {
+        targetFeat[i] = STAGE04_FEATURES[srcIdx];
+      }
+    }
+  },
+
+  // Abstract convergence fallback
   convergence(count, target) {
     for (let i = 0; i < count; i++) {
       if (i % 4 < 2) {
-        // Intertwining double helix: AI & Data systems synthesis
         const a = Math.random();
         const strand = i % 2 === 0 ? 0 : Math.PI;
         const angle = a * PI2 * 3.0 + strand;
@@ -96,7 +118,6 @@ const FormGenerators = {
         target[i * 3 + 1] = (a - 0.5) * 0.95;
         target[i * 3 + 2] = Math.sin(angle) * radius + rand(-0.012, 0.012);
       } else {
-        // Undulating mathematical horizon wave
         const side = Math.ceil(Math.sqrt(count / 2));
         const u = ((i % side) / side - 0.5) * 1.35;
         const v = (Math.floor(i / side) / side - 0.5) * 1.35;
@@ -129,12 +150,17 @@ const vertexShader = `
   attribute vec3 aPos2;
   attribute vec3 aPos3;
   attribute vec3 aPos4;
+  attribute vec3 aColor;
+  attribute float aFeature;
   attribute float aLum;
   attribute vec3 aSeed;
 
   varying float vLum;
   varying float vSeed;
   varying float vAlpha;
+  varying vec3 vColor;
+  varying float vFeature;
+  varying float vDepth;
 
   const float CAMERA = 2.4;
 
@@ -152,6 +178,8 @@ const vertexShader = `
   void main() {
     vLum = aLum;
     vSeed = aSeed.z;
+    vColor = aColor;
+    vFeature = aFeature;
 
     float p = clamp(uScrollProgress, 0.0, 3.0);
     vec3 pFrom = aPos1;
@@ -185,16 +213,18 @@ const vertexShader = `
     vec3 flightDir = normalize(aSeed * 2.0 - 1.0 + 0.0001);
     pos += flightDir * flight * uSwirl;
 
-    // Subtle natural organic ambient breathing
+    // Subtle natural organic ambient breathing (attenuated when settled in Stage 04)
+    float breatheAtten = 1.0 - smoothstep(2.5, 3.0, p) * 0.75;
     pos += vec3(
       sin(uTime * 0.55 + aSeed.y * 6.283) * 0.016,
       cos(uTime * 0.50 + aSeed.z * 6.283) * 0.016,
       sin(uTime * 0.45 + aSeed.x * 6.283) * 0.016
-    );
+    ) * breatheAtten;
 
     // Perspective spatial rotation
     vec3 pRot = rotate3D(pos, uRotation);
     pRot.z = min(pRot.z, CAMERA - 0.25);
+    vDepth = pRot.z;
 
     // Perspective projection
     float persp = CAMERA / (CAMERA - pRot.z);
@@ -209,8 +239,9 @@ const vertexShader = `
     }
 
     // Depth shading & point size
-    float depthShade = clamp(0.55 + pRot.z * 1.1, 0.25, 1.0);
-    float ptSize = uDot * (0.65 + aSeed.y * 0.7) * persp;
+    float depthShade = clamp(0.60 + pRot.z * 0.85, 0.30, 1.0);
+    float featureSize = mix(1.1, 0.88, aFeature);
+    float ptSize = uDot * (0.65 + aSeed.y * 0.6) * persp * featureSize;
 
     gl_Position = vec4(
       (screen.x / uViewport.x) * 2.0 - 1.0,
@@ -220,7 +251,7 @@ const vertexShader = `
     );
 
     vAlpha = depthShade * uAlpha;
-    gl_PointSize = ptSize * 1.25;
+    gl_PointSize = ptSize * 1.30;
   }
 `;
 
@@ -228,20 +259,50 @@ const fragmentShader = `
   uniform vec3 uColor;
   uniform vec3 uAccent;
   uniform vec3 uAccent2;
+  uniform float uScrollProgress;
+  uniform int uColorMode; // 0: Natural Portrait, 1: Cyber Cyan, 2: 3D Depth Spectrum
+
   varying float vLum;
   varying float vSeed;
   varying float vAlpha;
+  varying vec3 vColor;
+  varying float vFeature;
+  varying float vDepth;
 
   void main() {
     float d = length(gl_PointCoord - 0.5);
     if (d > 0.5) discard;
 
-    vec3 color = uColor * (0.40 + 0.60 * vLum);
-    color = mix(color, uAccent, step(0.970, vSeed));
-    color = mix(color, uAccent2, step(0.992, vSeed));
+    // 1. Base cybernetic palette
+    vec3 cyberColor = uColor * (0.35 + 0.65 * vLum);
+    cyberColor = mix(cyberColor, uAccent, step(0.970, vSeed));
+    cyberColor = mix(cyberColor, uAccent2, step(0.992, vSeed));
 
-    float mask = smoothstep(0.5, 0.20, d);
-    gl_FragColor = vec4(color, mask * vAlpha);
+    // 2. Natural portrait palette with subtle lighting
+    vec3 naturalColor = vColor * (0.85 + 0.35 * vLum);
+    // Subtle cyber edge rim on a tiny fraction of hair/edge particles
+    naturalColor = mix(naturalColor, uAccent, step(0.985, vSeed) * 0.35);
+
+    // 3. 3D Depth False-Color Spectrum:
+    // Warm amber on nose and chin -> cyan on cheeks -> deep indigo on temples and neck
+    float normDepth = clamp((vDepth + 0.45) / 0.90, 0.0, 1.0);
+    vec3 depthColor = mix(vec3(0.08, 0.15, 0.85), vec3(0.0, 0.94, 1.0), smoothstep(0.15, 0.55, normDepth));
+    depthColor = mix(depthColor, vec3(1.0, 0.78, 0.25), smoothstep(0.55, 0.90, normDepth));
+
+    // Morph transition into Stage 04
+    float faceMorph = smoothstep(2.1, 2.9, uScrollProgress);
+
+    vec3 finalColor;
+    if (uColorMode == 1) {
+      finalColor = cyberColor;
+    } else if (uColorMode == 2) {
+      finalColor = mix(cyberColor, depthColor, faceMorph);
+    } else {
+      finalColor = mix(cyberColor, naturalColor, faceMorph);
+    }
+
+    float mask = smoothstep(0.5, 0.18, d);
+    gl_FragColor = vec4(finalColor, mask * vAlpha);
   }
 `;
 
@@ -252,12 +313,20 @@ function initBackgroundEngine() {
   const canvas = document.getElementById('webgl-canvas');
   if (!canvas) return null;
 
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    alpha: true,
-    antialias: false,
-    powerPreference: 'high-performance'
-  });
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: 'high-performance'
+    });
+  } catch (e) {
+    console.warn('WebGL initialization fallback:', e);
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, depth: false });
+  }
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
@@ -272,21 +341,21 @@ function initBackgroundEngine() {
     celestial: new Float32Array(COUNT * 3),
     torus: new Float32Array(COUNT * 3),
     cube: new Float32Array(COUNT * 3),
-    convergence: new Float32Array(COUNT * 3)
+    faceStage04: new Float32Array(COUNT * 3)
   };
+
+  const colors = new Float32Array(COUNT * 3);
+  const features = new Float32Array(COUNT);
+  const lums = new Float32Array(COUNT);
+  const seeds = new Float32Array(COUNT * 3);
 
   FormGenerators.celestial(COUNT, forms.celestial);
   FormGenerators.torus(COUNT, forms.torus);
   FormGenerators.cube(COUNT, forms.cube);
-  FormGenerators.convergence(COUNT, forms.convergence);
+  FormGenerators.faceStage04(COUNT, forms.faceStage04, colors, lums, features);
 
-  const seeds = new Float32Array(COUNT * 3);
-  const lums = new Float32Array(COUNT);
   for (let i = 0; i < COUNT * 3; i++) {
     seeds[i] = Math.random();
-  }
-  for (let i = 0; i < COUNT; i++) {
-    lums[i] = Math.random() * 0.8 + 0.2;
   }
 
   const geometry = new THREE.BufferGeometry();
@@ -294,7 +363,9 @@ function initBackgroundEngine() {
   geometry.setAttribute('aPos1', new THREE.BufferAttribute(forms.celestial, 3));
   geometry.setAttribute('aPos2', new THREE.BufferAttribute(forms.torus, 3));
   geometry.setAttribute('aPos3', new THREE.BufferAttribute(forms.cube, 3));
-  geometry.setAttribute('aPos4', new THREE.BufferAttribute(forms.convergence, 3));
+  geometry.setAttribute('aPos4', new THREE.BufferAttribute(forms.faceStage04, 3));
+  geometry.setAttribute('aColor', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute('aFeature', new THREE.BufferAttribute(features, 1));
   geometry.setAttribute('aLum', new THREE.BufferAttribute(lums, 1));
   geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 3));
 
@@ -311,7 +382,8 @@ function initBackgroundEngine() {
     uRotation: { value: new THREE.Vector2(0.2, 0.0) },
     uColor: { value: new THREE.Color('#94a3b8') },
     uAccent: { value: new THREE.Color('#00f0ff') },
-    uAccent2: { value: new THREE.Color('#38bdf8') }
+    uAccent2: { value: new THREE.Color('#38bdf8') },
+    uColorMode: { value: 0 } // 0: Natural Portrait, 1: Cyan Cyber, 2: 3D Depth
   };
 
   const material = new THREE.ShaderMaterial({
@@ -330,6 +402,22 @@ function initBackgroundEngine() {
   let targetScrollProgress = 0.0;
   let currentScrollProgress = 0.0;
   let activeChapterIndex = 0;
+
+  // Stage 04 PoC Controls State
+  let anglePreset = 'free'; // 'front', 'left', 'right', 'free'
+  let targetPresetRot = { x: 0.06, y: 0.0 };
+
+  // Live Performance Telemetry State
+  let frameCount = 0;
+  let lastFpsUpdateTime = performance.now();
+  let lastFrameTime = performance.now();
+  let currentFps = 60;
+  let currentFrameDuration = 16.6;
+
+  const hudFps = document.getElementById('hud-fps');
+  const hudFrametime = document.getElementById('hud-frametime');
+  const hudVram = document.getElementById('hud-vram');
+  const hudCount = document.getElementById('hud-count');
 
   const mouse = {
     targetX: window.innerWidth / 2,
@@ -357,6 +445,25 @@ function initBackgroundEngine() {
     const vh = window.innerHeight;
     const vw = window.innerWidth;
 
+    // Telemetry updates (measured every 500ms)
+    const now = performance.now();
+    const deltaMs = now - lastFrameTime;
+    lastFrameTime = now;
+    frameCount++;
+
+    if (now - lastFpsUpdateTime >= 500) {
+      currentFps = Math.round((frameCount * 1000) / (now - lastFpsUpdateTime));
+      currentFrameDuration = deltaMs.toFixed(1);
+      frameCount = 0;
+      lastFpsUpdateTime = now;
+
+      if (hudFps) hudFps.textContent = `${currentFps} FPS`;
+      if (hudFrametime) hudFrametime.textContent = `${currentFrameDuration} ms`;
+      if (hudCount) hudCount.textContent = `${COUNT.toLocaleString()}`;
+      // GPU Buffer VRAM: 12000 points * (4 pos*3*4 + col*3*4 + feat*4 + lum*4 + seed*3*4) = 960 KB
+      if (hudVram) hudVram.textContent = `${(COUNT * 80 / 1024).toFixed(0)} KB`;
+    }
+
     mouse.x += (mouse.targetX - mouse.x) * 0.1;
     mouse.y += (mouse.targetY - mouse.y) * 0.1;
     mouse.curNormX += (mouse.normX - mouse.curNormX) * 0.07;
@@ -371,18 +478,39 @@ function initBackgroundEngine() {
       currentScrollProgress += (targetScrollProgress - currentScrollProgress) * 0.085;
       uniforms.uScrollProgress.value = currentScrollProgress;
 
+      const isStage4 = currentScrollProgress >= 2.45;
       const cx = vw * 0.5;
-      const cy = vh * 0.44;
-      const size = Math.min(vh * 0.66, vw * 0.58);
+      const cy = isStage4 ? vh * 0.40 : vh * 0.44;
+      const size = Math.min(vh * (isStage4 ? 0.74 : 0.66), vw * (isStage4 ? 0.65 : 0.58));
       uniforms.uFrame.value.set(cx, cy, size, 1.0);
 
-      const rotX = 0.22 + mouse.curNormY * 0.35;
-      const rotY = time * 0.12 + mouse.curNormX * 0.45;
+      let rotX, rotY;
+      if (isStage4) {
+        // Stage 04: Facial Reconstruction View Controls
+        if (anglePreset === 'front') {
+          rotX = 0.06 + mouse.curNormY * 0.08;
+          rotY = 0.0 + mouse.curNormX * 0.10;
+        } else if (anglePreset === 'left') {
+          rotX = 0.06 + mouse.curNormY * 0.08;
+          rotY = 0.436 + mouse.curNormX * 0.10; // +25 degrees
+        } else if (anglePreset === 'right') {
+          rotX = 0.06 + mouse.curNormY * 0.08;
+          rotY = -0.436 + mouse.curNormX * 0.10; // -25 degrees
+        } else {
+          // Free Orbit
+          rotX = 0.06 + mouse.curNormY * 0.45;
+          rotY = mouse.curNormX * 0.75;
+        }
+      } else {
+        // Chapters 1-3: Ambient Continuous Orbit
+        rotX = 0.22 + mouse.curNormY * 0.35;
+        rotY = time * 0.12 + mouse.curNormX * 0.45;
+      }
       uniforms.uRotation.value.set(rotX, rotY);
 
-      uniforms.uAlpha.value = 0.92;
-      uniforms.uDot.value = 2.4;
-      uniforms.uMouseForce.value = 1.0;
+      uniforms.uAlpha.value = 0.94;
+      uniforms.uDot.value = isStage4 ? 2.6 : 2.4;
+      uniforms.uMouseForce.value = isStage4 ? 0.45 : 1.0;
       uniforms.uSwirl.value = 0.24;
 
       // Synchronize Chapter text and dot indicators
@@ -434,11 +562,18 @@ function initBackgroundEngine() {
   });
 
   return {
-    setMode(mode) {
+    setMode(mode, initialChapter = null) {
       currentMode = mode;
       if (mode === 'story') {
-        targetScrollProgress = 0.0;
-        currentScrollProgress = 0.0;
+        if (initialChapter !== null) {
+          targetScrollProgress = initialChapter;
+          currentScrollProgress = initialChapter;
+          activeChapterIndex = Math.round(initialChapter);
+        } else {
+          targetScrollProgress = 0.0;
+          currentScrollProgress = 0.0;
+          activeChapterIndex = 0;
+        }
       }
     },
     addScroll(delta) {
@@ -463,6 +598,18 @@ function initBackgroundEngine() {
     },
     getProgress() {
       return currentScrollProgress;
+    },
+    setAnglePreset(preset) {
+      anglePreset = preset;
+      document.querySelectorAll('.poc-btn[data-angle]').forEach((btn) => {
+        btn.classList.toggle('active', btn.getAttribute('data-angle') === preset);
+      });
+    },
+    setColorMode(mode) {
+      uniforms.uColorMode.value = mode;
+      document.querySelectorAll('.poc-btn[data-shading]').forEach((btn) => {
+        btn.classList.toggle('active', parseInt(btn.getAttribute('data-shading'), 10) === mode);
+      });
     }
   };
 }
@@ -562,6 +709,7 @@ function initModeSwitcher(engine) {
   const storyView = document.getElementById('story-view');
   const btnSite = document.getElementById('btn-mode-site');
   const btnStory = document.getElementById('btn-mode-story');
+  const btnPoc = document.getElementById('btn-mode-poc');
   const btnStorySwitch = document.getElementById('btn-story-switch');
   const btnStoryContact = document.getElementById('btn-story-contact');
 
@@ -576,15 +724,28 @@ function initModeSwitcher(engine) {
     if (mode === 'site') {
       btnSite?.classList.add('active');
       btnStory?.classList.remove('active');
+      btnPoc?.classList.remove('active');
       siteView?.classList.remove('hidden-view');
       storyView?.classList.add('hidden-view');
       document.body.classList.remove('mode-story');
       document.body.style.overflow = 'auto';
       window.history.replaceState(null, '', '?v=site');
       engine?.setMode('site');
+    } else if (mode === 'poc') {
+      btnPoc?.classList.add('active');
+      btnStory?.classList.remove('active');
+      btnSite?.classList.remove('active');
+      siteView?.classList.add('hidden-view');
+      storyView?.classList.remove('hidden-view');
+      document.body.classList.add('mode-story');
+      document.body.style.overflow = 'hidden';
+      window.history.replaceState(null, '', '?v=story&stage=4');
+      engine?.setMode('story', 3.0);
+      engine?.setAnglePreset('front');
     } else {
       btnStory?.classList.add('active');
       btnSite?.classList.remove('active');
+      btnPoc?.classList.remove('active');
       siteView?.classList.add('hidden-view');
       storyView?.classList.remove('hidden-view');
       document.body.classList.add('mode-story');
@@ -596,6 +757,7 @@ function initModeSwitcher(engine) {
 
   btnSite?.addEventListener('click', () => setMode('site'));
   btnStory?.addEventListener('click', () => setMode('story'));
+  btnPoc?.addEventListener('click', () => setMode('poc'));
   btnStorySwitch?.addEventListener('click', () => setMode('site'));
   btnStoryContact?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -605,9 +767,27 @@ function initModeSwitcher(engine) {
     }, 100);
   });
 
+  // Wire POC Camera Angle Preset Buttons
+  document.querySelectorAll('.poc-btn[data-angle]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const angle = btn.getAttribute('data-angle');
+      engine?.setAnglePreset(angle);
+    });
+  });
+
+  // Wire POC Shading Palette Buttons
+  document.querySelectorAll('.poc-btn[data-shading]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const shading = parseInt(btn.getAttribute('data-shading'), 10);
+      engine?.setColorMode(shading);
+    });
+  });
+
   // Continuous Trackpad / Mouse Wheel Scroll Morphing in 3D Journey
   window.addEventListener('wheel', (e) => {
-    if (activeMode !== 'story') return;
+    if (activeMode !== 'story' && activeMode !== 'poc') return;
     const delta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 120);
     engine?.addScroll(delta * 0.0016);
   }, { passive: true });
@@ -615,12 +795,12 @@ function initModeSwitcher(engine) {
   // Continuous Touch Drag Morphing
   let touchStartY = 0;
   window.addEventListener('touchstart', (e) => {
-    if (activeMode !== 'story') return;
+    if (activeMode !== 'story' && activeMode !== 'poc') return;
     touchStartY = e.touches[0].clientY;
   }, { passive: true });
 
   window.addEventListener('touchmove', (e) => {
-    if (activeMode !== 'story') return;
+    if (activeMode !== 'story' && activeMode !== 'poc') return;
     const currentY = e.touches[0].clientY;
     const deltaY = touchStartY - currentY;
     touchStartY = currentY;
@@ -641,7 +821,7 @@ function initModeSwitcher(engine) {
 
   // Keyboard Navigation
   window.addEventListener('keydown', (e) => {
-    if (activeMode !== 'story') return;
+    if (activeMode !== 'story' && activeMode !== 'poc') return;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
       e.preventDefault();
       engine?.nextChapter();
@@ -653,7 +833,9 @@ function initModeSwitcher(engine) {
 
   // URL Initial State Detection
   const params = new URLSearchParams(window.location.search);
-  if (params.get('v') === 'story') {
+  if (params.get('stage') === '4' || params.get('v') === 'poc' || params.get('poc') === '1') {
+    setMode('poc');
+  } else if (params.get('v') === 'story') {
     setMode('story');
   } else {
     setMode('site');
