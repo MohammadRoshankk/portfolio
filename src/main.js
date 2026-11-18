@@ -1,574 +1,625 @@
 /**
  * ==========================================================================
- * MOHAMMAD ROSHAN — 3D PORTFOLIO WEBGL ENGINE
- * Inspired by inacionakiti.com
+ * MOHAMMAD ROSHAN — REVERSE-ENGINEERED 3D ENGINE
+ * Faithfully reproducing Inácio Nakiti's (inacionakiti.com) Particle Engine:
+ * 1. Image-Sampled Dotted Portrait with Luminance Attenuation
+ * 2. Idle Breathing, Sway & Parallax Depth Equation
+ * 3. Interactive X-Ray Photo Reveal (Dots scatter to reveal real photo)
+ * 4. Staggered "Vapour Mist" Flight Physics between 3D Geometries
+ * 5. Generative 3D Sculptures: Cube Matrix, Torus, Helix, Wave & Text Name
+ * 6. Dynamic Magnetic Hover Lens
  * ==========================================================================
  */
 
 import * as THREE from 'three';
 
-// --- CONFIG & STATE ---
-const STATE = {
-  mode: 'site', // 'site' or 'story'
-  storyChapter: 1,
-  soundEnabled: false,
-  scrollProgress: 0,
-  scrollVelocity: 0,
-  mouse: {
-    x: 0,
-    y: 0,
-    targetX: 0,
-    targetY: 0,
-    normalizedX: 0,
-    normalizedY: 0
+// --- MATH UTILITIES ---
+const PI2 = Math.PI * 2;
+const rand = (min = -1, max = 1) => min + Math.random() * (max - min);
+
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+}
+
+// ==========================================================================
+// 1. PROCEDURAL 3D FORM GENERATORS (INÁCIO NAKITI SPEC)
+// ==========================================================================
+const FormGenerators = {
+  // 3D Rotating Data Cube with layered inner grid
+  cube(count, target) {
+    for (let i = 0; i < count; i++) {
+      const u = (Math.floor(Math.random() * 14) / 13 - 0.5) * 0.6 + rand(-0.01, 0.01);
+      const v = (Math.floor(Math.random() * 14) / 13 - 0.5) * 0.6 + rand(-0.01, 0.01);
+      const face = i % 2 === 0 ? 0.3 : -0.3;
+      const axis = (i >> 1) % 3;
+
+      const x = axis === 0 ? face : axis === 1 ? u : v;
+      const y = axis === 0 ? u : axis === 1 ? face : v;
+      const z = axis === 0 ? v : axis === 1 ? u : face;
+
+      target[i * 3] = x;
+      target[i * 3 + 1] = y;
+      target[i * 3 + 2] = z;
+    }
+  },
+
+  // 3D Neural Synapse Torus (Donut)
+  torus(count, target) {
+    for (let i = 0; i < count; i++) {
+      const u = Math.random() * PI2;
+      const v = Math.random() * PI2;
+      const R = 0.33 + 0.11 * Math.cos(v);
+      target[i * 3] = R * Math.cos(u);
+      target[i * 3 + 1] = 0.11 * Math.sin(v);
+      target[i * 3 + 2] = R * Math.sin(u);
+    }
+  },
+
+  // 3D Data Pipeline Double Helix
+  helix(count, target) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random();
+      if (i % 5 < 2) {
+        const angle = a * PI2 * 2 + (i % 5) * Math.PI;
+        target[i * 3] = Math.cos(angle) * 0.18 + rand(-0.008, 0.008);
+        target[i * 3 + 1] = (a - 0.5) * 0.85;
+        target[i * 3 + 2] = Math.sin(angle) * 0.18 + rand(-0.008, 0.008);
+      } else {
+        const step = Math.floor(a * 26) / 26;
+        const angle = step * PI2 * 2;
+        const radius = rand(0.05, 0.18);
+        target[i * 3] = Math.cos(angle) * radius;
+        target[i * 3 + 1] = (step - 0.5) * 0.85;
+        target[i * 3 + 2] = Math.sin(angle) * radius;
+      }
+    }
+  },
+
+  // 3D Streaming Telemetry Wave
+  wave(count, target) {
+    const side = Math.ceil(Math.sqrt(count));
+    for (let i = 0; i < count; i++) {
+      const x = ((i % side) / side - 0.5) * 1.1;
+      const z = (Math.floor(i / side) / side - 0.5) * 1.1;
+      const y = 0.08 * Math.sin(x * 9) + 0.08 * Math.cos(z * 7);
+      target[i * 3] = x;
+      target[i * 3 + 1] = y;
+      target[i * 3 + 2] = z;
+    }
+  },
+
+  // 3D Text Rasterizer: Spells out Name at the footer
+  rasterizeText(text, count) {
+    const offscreen = document.createElement('canvas');
+    offscreen.width = 1200;
+    offscreen.height = 240;
+    const ctx = offscreen.getContext('2d', { willReadFrequently: true });
+
+    ctx.font = 'bold 84px "Syne", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, offscreen.width / 2, offscreen.height / 2);
+
+    const imgData = ctx.getImageData(0, 0, offscreen.width, offscreen.height).data;
+    const points = [];
+
+    const step = 4;
+    for (let y = 0; y < offscreen.height; y += step) {
+      for (let x = 0; x < offscreen.width; x += step) {
+        const alpha = imgData[(y * offscreen.width + x) * 4 + 3];
+        if (alpha > 128) {
+          points.push(
+            (x - offscreen.width / 2) / offscreen.height,
+            (offscreen.height / 2 - y) / offscreen.height,
+            rand(-0.02, 0.02)
+          );
+        }
+      }
+    }
+
+    const target = new Float32Array(count * 3);
+    const validCount = points.length / 3;
+
+    for (let i = 0; i < count; i++) {
+      const srcIdx = (i % validCount) * 3;
+      target[i * 3] = points[srcIdx] + rand(-0.005, 0.005);
+      target[i * 3 + 1] = points[srcIdx + 1] + rand(-0.005, 0.005);
+      target[i * 3 + 2] = points[srcIdx + 2];
+    }
+
+    return target;
   }
 };
 
 // ==========================================================================
-// 1. PRELOADER & INITIALIZATION
+// 2. PORTRAIT SAMPLING (DOT-MATRIX GENERATION FROM IMAGE)
 // ==========================================================================
-const preloader = document.getElementById('preloader');
-const loaderCounter = document.getElementById('loader-counter');
-const loaderBarFill = document.getElementById('loader-bar-fill');
+async function samplePortrait(imageSrc) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const targetWidth = 320;
+      const targetHeight = Math.round(targetWidth * (img.naturalHeight / img.naturalWidth));
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
 
-let loadPercent = 0;
-const loadInterval = setInterval(() => {
-  loadPercent += Math.floor(Math.random() * 15) + 8;
-  if (loadPercent >= 100) {
-    loadPercent = 100;
-    clearInterval(loadInterval);
-    setTimeout(() => {
-      preloader.classList.add('fade-out');
-      document.body.classList.remove('loading');
-      initAudioPrompt();
-    }, 400);
-  }
-  loaderCounter.textContent = `${loadPercent < 10 ? '0' : ''}${loadPercent}%`;
-  loaderBarFill.style.width = `${loadPercent}%`;
-}, 60);
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-// ==========================================================================
-// 2. THREE.JS SCENE SETUP
-// ==========================================================================
-const canvas = document.getElementById('webgl-canvas');
-const scene = new THREE.Scene();
+      const data = ctx.getImageData(0, 0, targetWidth, targetHeight).data;
+      const positions = [];
+      const lums = [];
 
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  100
-);
-camera.position.set(0, 0, 7);
+      const step = 3; // Grid spacing in px
+      for (let y = 0; y < targetHeight; y += step) {
+        for (let x = 0; x < targetWidth; x += step) {
+          const idx = (y * targetWidth + x) * 4;
+          const r = data[idx];
+          const g = data[idx + 1];
+          const b = data[idx + 2];
+          const a = data[idx + 3];
 
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  antialias: true,
-  alpha: true,
-  powerPreference: 'high-performance'
-});
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+          if (a > 64) {
+            // Standard perceptual luminance
+            const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0;
 
-// ==========================================================================
-// 3. MORPHING 3D PARTICLE SYSTEM (GLSL SHADERS)
-// ==========================================================================
-const PARTICLE_COUNT = window.innerWidth < 768 ? 12000 : 28000;
-const particleGeometry = new THREE.BufferGeometry();
+            // Normalized coordinates centered at (0, 0)
+            const nx = (x - targetWidth / 2) / targetHeight;
+            const ny = (targetHeight / 2 - y) / targetHeight;
+            const nz = rand(-0.015, 0.015);
 
-const posInitial = new Float32Array(PARTICLE_COUNT * 3);
-const posTorus = new Float32Array(PARTICLE_COUNT * 3);
-const posCube = new Float32Array(PARTICLE_COUNT * 3);
-const posWave = new Float32Array(PARTICLE_COUNT * 3);
-const randoms = new Float32Array(PARTICLE_COUNT);
+            positions.push(nx, ny, nz);
+            lums.push(lum);
+          }
+        }
+      }
 
-for (let i = 0; i < PARTICLE_COUNT; i++) {
-  // Shape 1: Fibonacci Sphere Nebula
-  const phi = Math.acos(1 - 2 * (i + 0.5) / PARTICLE_COUNT);
-  const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-  const radius = 2.8 * Math.cbrt(Math.random() * 0.8 + 0.2);
-  
-  posInitial[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-  posInitial[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-  posInitial[i * 3 + 2] = radius * Math.cos(phi);
-
-  // Shape 2: Torus Knot / Vortex
-  const u = Math.random() * Math.PI * 2;
-  const v = Math.random() * Math.PI * 2;
-  const R = 2.4;
-  const r = 0.8 + Math.random() * 0.3;
-  posTorus[i * 3] = (R + r * Math.cos(v)) * Math.cos(u);
-  posTorus[i * 3 + 1] = (R + r * Math.cos(v)) * Math.sin(u);
-  posTorus[i * 3 + 2] = r * Math.sin(v) + Math.sin(u * 3) * 0.4;
-
-  // Shape 3: Cyber Matrix / Cube Grid
-  const side = 4.2;
-  posCube[i * 3] = (Math.random() - 0.5) * side;
-  posCube[i * 3 + 1] = (Math.random() - 0.5) * side;
-  posCube[i * 3 + 2] = (Math.random() - 0.5) * side;
-
-  // Shape 4: Fluid Wave Landscape
-  const wx = (Math.random() - 0.5) * 6;
-  const wz = (Math.random() - 0.5) * 6;
-  const wy = Math.sin(wx * 1.5) * Math.cos(wz * 1.5) * 0.8;
-  posWave[i * 3] = wx;
-  posWave[i * 3 + 1] = wy;
-  posWave[i * 3 + 2] = wz;
-
-  randoms[i] = Math.random();
+      resolve({
+        count: lums.length,
+        positions: new Float32Array(positions),
+        lums: new Float32Array(lums),
+        aspect: targetWidth / targetHeight
+      });
+    };
+    img.src = imageSrc;
+  });
 }
 
-particleGeometry.setAttribute('position', new THREE.BufferAttribute(posInitial, 3));
-particleGeometry.setAttribute('aPosTorus', new THREE.BufferAttribute(posTorus, 3));
-particleGeometry.setAttribute('aPosCube', new THREE.BufferAttribute(posCube, 3));
-particleGeometry.setAttribute('aPosWave', new THREE.BufferAttribute(posWave, 3));
-particleGeometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1));
-
-// GLSL Vertex Shader
+// ==========================================================================
+// 3. GLSL SHADER CODE (EXACT INÁCIO NAKITI ENGINE ARCHITECTURE)
+// ==========================================================================
 const vertexShader = `
+  uniform vec4 uFrom;       // cx, cy (px), size px, kind (0=portrait, 1=form)
+  uniform vec4 uTo;
+  uniform vec2 uFromRot;
+  uniform vec2 uToRot;
+  uniform float uFromAlpha;
+  uniform float uToAlpha;
+  uniform float uMix;
   uniform float uTime;
-  uniform float uMorphState; // 0: Sphere, 1: Torus, 2: Cube, 3: Wave
-  uniform float uScrollProgress;
-  uniform vec2 uMouse;
-  uniform float uDPR;
+  uniform float uProgress;
+  uniform float uSpacing;
+  uniform float uDot;
+  uniform vec2 uViewport;
+  uniform vec2 uMouse;      // px (y down)
+  uniform float uHover;
+  uniform vec3 uLens;       // open hover lens: cx, cy, radius
+  uniform float uLensMax;
+  uniform float uLensDot;
+  uniform vec3 uReveal;     // hero portrait reveal: cx, cy, radius
+  uniform float uSwirl;     // how far dots swing out mid-flight
+  uniform float uMist;
 
-  attribute vec3 aPosTorus;
-  attribute vec3 aPosCube;
-  attribute vec3 aPosWave;
-  attribute float aRandom;
+  attribute vec3 aFrom;
+  attribute vec3 aTo;
+  attribute float aLum;
+  attribute vec3 aSeed;
 
-  varying vec3 vPosition;
-  varying float vRandom;
-  varying float vDist;
+  varying float vLum;
+  varying float vSeed;
+  varying float vAlpha;
 
-  // Simple pseudo 3D curl noise
-  vec3 curl(vec3 p) {
-    return vec3(
-      sin(p.y * 1.2 + uTime * 0.6) * 0.35,
-      cos(p.z * 1.2 + uTime * 0.6) * 0.35,
-      sin(p.x * 1.2 + uTime * 0.6) * 0.35
+  const float CAMERA = 2.2;
+
+  float easeInOut(float t) {
+    return t < 0.5 ? 2.0 * t * t : -1.0 + (4.0 - 2.0 * t) * t;
+  }
+
+  // Portrait fade at lower torso
+  float portraitFade(float y) {
+    return mix(0.15, 1.0, smoothstep(-0.5, -0.1, y));
+  }
+
+  vec3 rotate(vec3 p, vec2 r) {
+    float cy = cos(r.y), sy = sin(r.y);
+    p = vec3(p.x * cy + p.z * sy, p.y, -p.x * sy + p.z * cy);
+    float cx = cos(r.x), sx = sin(r.x);
+    return vec3(p.x, p.y * cx - p.z * sx, p.y * sx + p.z * cx);
+  }
+
+  // Projection: screen xy, point size, alpha
+  vec4 place(vec3 local, vec4 frame, vec2 rot, float alpha) {
+    vec3 p = rotate(local, rot);
+    p.z = min(p.z, CAMERA - 0.3);
+    float persp = CAMERA / (CAMERA - p.z);
+    vec2 screen = frame.xy + vec2(p.x, -p.y) * persp * frame.z;
+    
+    // Portrait mode
+    if (frame.w < 0.5) {
+      return vec4(screen, uSpacing * (0.3 + aLum * 0.95) * persp, alpha * portraitFade(local.y));
+    }
+    
+    // 3D Forms mode
+    float shade = clamp(0.55 + p.z * 1.4, 0.2, 1.0);
+    return vec4(screen, uDot * (0.6 + aSeed.y * 0.8) * persp, alpha * shade);
+  }
+
+  // Inacio Nakiti's Idle Sway & Breathing Equation
+  vec2 idle() {
+    float h = aFrom.y + 0.5; // 0 at torso, 1 at head
+    vec2 o = vec2(sin(uTime * 0.45) * 4.0 * h, -sin(uTime * 1.1) * 3.0 * h);
+    o.x += sin(aFrom.y * 16.0 - uTime * 1.8 + aSeed.z * 2.0) * 1.4 * smoothstep(0.1, 0.9, h);
+    // Cursor depth parallax
+    o += (uMouse - uFrom.xy) / uViewport * (aLum - 0.4) * 28.0;
+    return o;
+  }
+
+  void main() {
+    vLum = aLum;
+    vSeed = aSeed.z;
+
+    vec3 dir = normalize(aSeed * 2.0 - 1.0 + 0.0001);
+    bool fromPortrait = uFrom.w < 0.5;
+    bool mist = fromPortrait || uMist > 0.5;
+
+    // Staggered flight departure
+    float order = aSeed.x * (mist ? 0.3 : 0.45);
+    float raw = clamp((uMix - order) / (mist ? 0.7 : 0.55), 0.0, 1.0);
+    float t = easeInOut(raw);
+    float flight = sin(t * 3.14159);
+
+    vec4 a = place(aFrom, uFrom, uFromRot, uFromAlpha);
+    if (fromPortrait) a.xy += idle();
+
+    vec4 b = place(aTo, uTo, uToRot, uToAlpha);
+
+    // Mid-flight interpolation
+    vec2 screen = mix(a.xy, b.xy, t);
+
+    // Swing outwards into "vapour mist"
+    screen += dir.xy * flight * uViewport.y * uSwirl;
+
+    float size = mix(a.z, b.z, t);
+    float alpha = mix(a.w, b.w, t);
+
+    // Mist: dots swell and vaporize mid-flight
+    if (mist) {
+      size *= 1.0 + flight * 0.6;
+      alpha *= 1.0 - flight * 0.45;
+    }
+
+    // Intro assembly from scattered cloud
+    float p = clamp((uProgress - aSeed.x * 0.6) / 0.4, 0.0, 1.0);
+    p = 1.0 - pow(1.0 - p, 3.0);
+    vec2 scattered = uViewport * 0.5 + dir.xy * uViewport.y * (0.4 + aSeed.y * 0.6);
+    screen = mix(scattered, screen, p);
+    alpha *= 0.4 + 0.6 * p;
+
+    // Subtle breathing shimmer
+    screen += vec2(sin(uTime * 0.8 + aSeed.y * 6.283), cos(uTime * 0.7 + aSeed.z * 6.283)) * 1.2;
+
+    // Magnetic Hover Lens: dots peel off and orbit the cursor
+    float lensMix = clamp(clamp(uLens.z / uLensMax, 0.0, 1.0) * 1.4 - aSeed.x * 0.4, 0.0, 1.0);
+    lensMix = lensMix * lensMix * (3.0 - 2.0 * lensMix);
+    float angle = aSeed.z * 6.283 + uTime * 0.25 * (aSeed.y - 0.5);
+    float radius = uLens.z * (sqrt(aSeed.y) * 0.97 + 0.08 * step(0.93, aSeed.x) * aSeed.z);
+    screen = mix(screen, uLens.xy + vec2(cos(angle), sin(angle)) * radius, lensMix);
+    size = mix(size, uLensDot, lensMix);
+    alpha = mix(alpha, 1.7, lensMix);
+
+    // Cursor Repulsion force
+    vec2 diff = screen - uMouse;
+    float force = smoothstep(130.0, 0.0, length(diff)) * uHover * (1.0 - lensMix);
+    screen += normalize(diff + 0.0001) * force * 35.0;
+
+    // Inacio Nakiti Portrait X-Ray Reveal:
+    // When hovering over the portrait, dots scatter to reveal real photo underneath!
+    float reveal = step(uFrom.w, 0.5) * (1.0 - t) * smoothstep(uReveal.z, uReveal.z * 0.35, length(screen - uReveal.xy));
+    screen += normalize(screen - uReveal.xy + 0.0001) * reveal * 26.0;
+    alpha *= 1.0 - reveal * 0.95;
+
+    vAlpha = alpha;
+
+    // Convert screen space pixels to WebGL NDC
+    gl_Position = vec4(
+      (screen.x / uViewport.x) * 2.0 - 1.0,
+      1.0 - (screen.y / uViewport.y) * 2.0,
+      0.0,
+      1.0
     );
-  }
 
-  void main() {
-    vRandom = aRandom;
-
-    // Morph interpolation across 4 target geometries
-    vec3 p0 = position;
-    vec3 p1 = aPosTorus;
-    vec3 p2 = aPosCube;
-    vec3 p3 = aPosWave;
-
-    vec3 blendedPos = p0;
-    if (uMorphState < 1.0) {
-      blendedPos = mix(p0, p1, uMorphState);
-    } else if (uMorphState < 2.0) {
-      blendedPos = mix(p1, p2, uMorphState - 1.0);
-    } else {
-      blendedPos = mix(p2, p3, min(uMorphState - 2.0, 1.0));
-    }
-
-    // Add turbulence noise
-    vec3 turbulence = curl(blendedPos * 0.8);
-    vec3 finalPos = blendedPos + turbulence * (0.2 + aRandom * 0.3);
-
-    // Mouse interactive deflection in XY plane
-    float mouseDistance = distance(finalPos.xy, uMouse * 4.5);
-    if (mouseDistance < 2.2) {
-      vec2 dir = normalize(finalPos.xy - (uMouse * 4.5));
-      finalPos.xy += dir * (2.2 - mouseDistance) * 0.6;
-    }
-
-    vPosition = finalPos;
-    vDist = mouseDistance;
-
-    vec4 mvPosition = modelViewMatrix * vec4(finalPos, 1.0);
-    gl_Position = projectionMatrix * mvPosition;
-
-    // Responsive Point Size Attenuation
-    gl_PointSize = (14.0 * aRandom + 6.0) * (1.0 / -mvPosition.z) * uDPR;
+    gl_PointSize = size * (1.0 + force * 0.6);
   }
 `;
 
-// GLSL Fragment Shader
 const fragmentShader = `
-  uniform vec3 uColorA;
-  uniform vec3 uColorB;
-  uniform vec3 uColorC;
-  uniform float uTime;
-
-  varying vec3 vPosition;
-  varying float vRandom;
-  varying float vDist;
+  uniform vec3 uColor;
+  uniform vec3 uAccent;
+  varying float vLum;
+  varying float vSeed;
+  varying float vAlpha;
 
   void main() {
-    // Generate soft circular point sprite
-    vec2 coord = gl_PointCoord - vec2(0.5);
-    float dist = length(coord);
-    if (dist > 0.5) discard;
+    float d = length(gl_PointCoord - 0.5);
+    if (d > 0.5) discard;
 
-    // Soft radial glow gradient
-    float alpha = smoothstep(0.5, 0.05, dist);
+    // Base color modulated by luminance
+    vec3 color = uColor * (0.28 + 0.72 * vLum);
 
-    // Dynamic color gradient based on coordinates and time
-    float colorFactor = sin(vPosition.y * 0.5 + uTime * 0.3 + vRandom) * 0.5 + 0.5;
-    vec3 color = mix(uColorA, uColorB, colorFactor);
+    // Starry accent shimmer on ~1.5% of dots
+    color = mix(color, uAccent, step(0.985, vSeed));
 
-    // Neon highlight when mouse is nearby
-    if (vDist < 2.5) {
-      color = mix(uColorC, color, vDist / 2.5);
-      alpha *= 1.2;
-    }
+    // Smooth circular alpha
+    float mask = smoothstep(0.5, 0.25, d);
 
-    gl_FragColor = vec4(color, alpha * 0.85);
+    gl_FragColor = vec4(color, mask * vAlpha);
   }
 `;
 
-const particleMaterial = new THREE.ShaderMaterial({
-  vertexShader,
-  fragmentShader,
-  transparent: true,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending,
-  uniforms: {
-    uTime: { value: 0 },
-    uMorphState: { value: 0 },
-    uScrollProgress: { value: 0 },
-    uMouse: { value: new THREE.Vector2(0, 0) },
-    uDPR: { value: Math.min(window.devicePixelRatio, 1.75) },
-    uColorA: { value: new THREE.Color('#3b82f6') }, // Royal Electric Blue
-    uColorB: { value: new THREE.Color('#8b5cf6') }, // Vivid Purple
-    uColorC: { value: new THREE.Color('#00f0ff') }, // Bright Cyan Neon
-  }
-});
-
-const particlePoints = new THREE.Points(particleGeometry, particleMaterial);
-scene.add(particlePoints);
-
-// Central ambient accent light
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-scene.add(ambientLight);
-
 // ==========================================================================
-// 4. CAMERA PATH & SMOOTH SCROLL CHOREOGRAPHY
+// 4. MAIN ENGINE ORCHESTRATION
 // ==========================================================================
-const cameraCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(0, 0, 7.5),     // Section 1: Hero front view
-  new THREE.Vector3(3.2, 1.5, 5.0),  // Section 2: Projects high angle
-  new THREE.Vector3(-2.8, -1.2, 4.2),// Section 3: Skills dynamic view
-  new THREE.Vector3(0, -2.5, 3.8),   // Section 4: About close intimacy
-  new THREE.Vector3(0, 0, 6.0),      // Section 5: Contact finale
-]);
-
-// Smooth scroll listener
-let targetScrollY = window.scrollY;
-let currentScrollY = window.scrollY;
-
-window.addEventListener('scroll', () => {
-  targetScrollY = window.scrollY;
-});
-
-function updateScrollProgress() {
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-  if (maxScroll <= 0) return 0;
-
-  // Eased scroll lerp
-  currentScrollY += (targetScrollY - currentScrollY) * 0.08;
-  const progress = Math.max(0, Math.min(1, currentScrollY / maxScroll));
-  
-  STATE.scrollProgress = progress;
-  particleMaterial.uniforms.uScrollProgress.value = progress;
-
-  // In site mode, morph the particles as user scrolls
-  if (STATE.mode === 'site') {
-    const morphTarget = progress * 3.0;
-    particleMaterial.uniforms.uMorphState.value += (morphTarget - particleMaterial.uniforms.uMorphState.value) * 0.05;
-
-    // Follow camera spline
-    const camPos = cameraCurve.getPointAt(progress);
-    camera.position.lerp(camPos, 0.08);
-
-    const lookTarget = cameraCurve.getPointAt(Math.min(progress + 0.04, 1.0));
-    camera.lookAt(lookTarget);
-  }
-}
-
-// ==========================================================================
-// 5. MOUSE PARALLAX & MAGNETIC CURSOR
-// ==========================================================================
-const cursorDot = document.getElementById('cursor-dot');
-const cursorCircle = document.getElementById('cursor-circle');
-
-let cursorX = window.innerWidth / 2;
-let cursorY = window.innerHeight / 2;
-let circleX = cursorX;
-let circleY = cursorY;
-
-window.addEventListener('mousemove', (e) => {
-  cursorX = e.clientX;
-  cursorY = e.clientY;
-
-  // Normalized mouse (-1 to 1)
-  STATE.mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
-  STATE.mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
-});
-
-// Magnetic elements hover
-document.querySelectorAll('[data-magnetic]').forEach((el) => {
-  el.addEventListener('mouseenter', () => {
-    document.body.classList.add('cursor-hover');
-    playTone(580, 0.05);
+async function initEngine() {
+  const canvas = document.getElementById('webgl-canvas');
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: false,
+    powerPreference: 'high-performance'
   });
-  el.addEventListener('mouseleave', () => {
-    document.body.classList.remove('cursor-hover');
-  });
-});
-
-// Tilt Cards
-document.querySelectorAll('[data-tilt]').forEach((card) => {
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    card.style.transform = `perspective(1000px) rotateX(${-y * 0.03}deg) rotateY(${x * 0.03}deg) translateY(-4px)`;
-  });
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
-  });
-});
-
-// ==========================================================================
-// 6. PROCEDURAL WEB AUDIO SYNTHESIZER
-// ==========================================================================
-let audioCtx = null;
-let masterGain = null;
-let ambientOscA = null;
-let ambientOscB = null;
-
-function initAudioPrompt() {
-  const audioBtn = document.getElementById('audio-toggle');
-  const audioLabel = document.getElementById('audio-label');
-
-  audioBtn.addEventListener('click', () => {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-      masterGain.connect(audioCtx.destination);
-
-      // Ambient low synth drone A (55 Hz A1)
-      ambientOscA = audioCtx.createOscillator();
-      ambientOscA.type = 'sine';
-      ambientOscA.frequency.setValueAtTime(55, audioCtx.currentTime);
-
-      // Ambient low synth drone B (110 Hz A2 with detune)
-      ambientOscB = audioCtx.createOscillator();
-      ambientOscB.type = 'triangle';
-      ambientOscB.frequency.setValueAtTime(110, audioCtx.currentTime);
-      ambientOscB.detune.setValueAtTime(4, audioCtx.currentTime);
-
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(350, audioCtx.currentTime);
-
-      ambientOscA.connect(filter);
-      ambientOscB.connect(filter);
-      filter.connect(masterGain);
-
-      ambientOscA.start();
-      ambientOscB.start();
-    }
-
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-
-    STATE.soundEnabled = !STATE.soundEnabled;
-    if (STATE.soundEnabled) {
-      masterGain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.3);
-      audioBtn.classList.add('playing');
-      audioLabel.textContent = 'Sound On';
-      playTone(440, 0.1);
-    } else {
-      masterGain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 0.3);
-      audioBtn.classList.remove('playing');
-      audioLabel.textContent = 'Sound Off';
-    }
-  });
-}
-
-function playTone(freq = 440, duration = 0.08) {
-  if (!audioCtx || !STATE.soundEnabled) return;
-  const osc = audioCtx.createOscillator();
-  const toneGain = audioCtx.createGain();
-
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + duration);
-
-  toneGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-  toneGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-
-  osc.connect(toneGain);
-  toneGain.connect(audioCtx.destination);
-
-  osc.start();
-  osc.stop(audioCtx.currentTime + duration);
-}
-
-// ==========================================================================
-// 7. DUAL-MODE LOGIC: SITE (?v=site) VS 3D STORY (?v=story)
-// ==========================================================================
-const siteView = document.getElementById('site-view');
-const storyView = document.getElementById('story-view');
-const btnModeSite = document.getElementById('btn-mode-site');
-const btnModeStory = document.getElementById('btn-mode-story');
-const btnStorySwitch = document.getElementById('btn-story-switch');
-const storyChapters = document.querySelectorAll('.story-chapter');
-const storyDots = document.querySelectorAll('.story-dot');
-const storyPrevBtn = document.getElementById('story-prev');
-const storyNextBtn = document.getElementById('story-next');
-
-// Check URL search parameters on load
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('v') === 'story') {
-  setMode('story');
-} else {
-  setMode('site');
-}
-
-btnModeSite.addEventListener('click', () => setMode('site'));
-btnModeStory.addEventListener('click', () => setMode('story'));
-btnStorySwitch.addEventListener('click', () => setMode('site'));
-
-function setMode(mode) {
-  STATE.mode = mode;
-  playTone(mode === 'site' ? 520 : 660, 0.12);
-
-  if (mode === 'site') {
-    btnModeSite.classList.add('active');
-    btnModeStory.classList.remove('active');
-    siteView.classList.remove('hidden-view');
-    storyView.classList.add('hidden-view');
-    document.body.style.overflow = 'auto';
-    window.history.replaceState(null, '', '?v=site');
-  } else {
-    btnModeStory.classList.add('active');
-    btnModeSite.classList.remove('active');
-    siteView.classList.add('hidden-view');
-    storyView.classList.remove('hidden-view');
-    document.body.style.overflow = 'hidden';
-    setStoryChapter(1);
-    window.history.replaceState(null, '', '?v=story');
-  }
-}
-
-function setStoryChapter(num) {
-  STATE.storyChapter = num;
-  storyChapters.forEach((ch, idx) => {
-    ch.classList.toggle('active-chapter', idx === num - 1);
-  });
-  storyDots.forEach((dot, idx) => {
-    dot.classList.toggle('active', idx === num - 1);
-  });
-
-  // Camera and morph targets for story mode
-  const morphValue = num - 1; // 0, 1, 2, 3
-  particleMaterial.uniforms.uMorphState.value = morphValue;
-
-  const positions = [
-    new THREE.Vector3(0, 0, 7.5),
-    new THREE.Vector3(0, 1.8, 5.2),
-    new THREE.Vector3(3.5, 0, 4.5),
-    new THREE.Vector3(0, 0, 5.5)
-  ];
-  camera.position.set(positions[num - 1].x, positions[num - 1].y, positions[num - 1].z);
-  camera.lookAt(0, 0, 0);
-
-  playTone(330 * (1 + num * 0.2), 0.15);
-}
-
-storyDots.forEach((dot) => {
-  dot.addEventListener('click', () => {
-    setStoryChapter(parseInt(dot.getAttribute('data-index')));
-  });
-});
-
-storyNextBtn.addEventListener('click', () => {
-  let next = STATE.storyChapter + 1;
-  if (next > 4) next = 1;
-  setStoryChapter(next);
-});
-
-storyPrevBtn.addEventListener('click', () => {
-  let prev = STATE.storyChapter - 1;
-  if (prev < 1) prev = 4;
-  setStoryChapter(prev);
-});
-
-// Email Copy Button
-const btnCopy = document.getElementById('btn-copy');
-const copyBtnText = document.getElementById('copy-btn-text');
-const emailAddress = document.getElementById('email-address').textContent;
-
-btnCopy.addEventListener('click', () => {
-  navigator.clipboard.writeText(emailAddress).then(() => {
-    copyBtnText.textContent = 'Copied! ✓';
-    btnCopy.style.background = '#00f0ff';
-    playTone(880, 0.1);
-    setTimeout(() => {
-      copyBtnText.textContent = 'Copy Email';
-      btnCopy.style.background = '#ffffff';
-    }, 2000);
-  });
-});
-
-// ==========================================================================
-// 8. RENDER ANIMATION LOOP
-// ==========================================================================
-let clock = new THREE.Clock();
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  const elapsedTime = clock.getElapsedTime();
-
-  // Mouse lerping
-  STATE.mouse.x += (STATE.mouse.targetX - STATE.mouse.x) * 0.06;
-  STATE.mouse.y += (STATE.mouse.targetY - STATE.mouse.y) * 0.06;
-
-  // Custom Cursor damping
-  circleX += (cursorX - circleX) * 0.15;
-  circleY += (cursorY - circleY) * 0.15;
-  cursorDot.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
-  cursorCircle.style.transform = `translate3d(${circleX}px, ${circleY}px, 0)`;
-
-  // Update uniforms
-  particleMaterial.uniforms.uTime.value = elapsedTime;
-  particleMaterial.uniforms.uMouse.value.set(STATE.mouse.x, STATE.mouse.y);
-
-  // Update scroll
-  updateScrollProgress();
-
-  // Gentle autonomous particle rotation
-  particlePoints.rotation.y = elapsedTime * 0.06 + STATE.mouse.x * 0.3;
-  particlePoints.rotation.x = STATE.mouse.y * 0.2;
-
-  renderer.render(scene, camera);
-}
-animate();
-
-// ==========================================================================
-// 9. WINDOW RESIZING
-// ==========================================================================
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
 
-  particleMaterial.uniforms.uDPR.value = Math.min(window.devicePixelRatio, 1.75);
-});
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+  // 1. Sample User's Real Portrait (roshan.jpg)
+  const portraitData = await samplePortrait('./roshan.jpg');
+  const count = portraitData.count;
+
+  // 2. Generate Corresponding 3D Geometries with matching count
+  const forms = {
+    portrait: portraitData.positions,
+    cube: new Float32Array(count * 3),
+    torus: new Float32Array(count * 3),
+    helix: new Float32Array(count * 3),
+    wave: new Float32Array(count * 3),
+    name: FormGenerators.rasterizeText('MOHAMMAD ROSHAN', count)
+  };
+
+  FormGenerators.cube(count, forms.cube);
+  FormGenerators.torus(count, forms.torus);
+  FormGenerators.helix(count, forms.helix);
+  FormGenerators.wave(count, forms.wave);
+
+  // 3. Setup Random Seed Attributes for Stagger & Noise
+  const seeds = new Float32Array(count * 3);
+  for (let i = 0; i < count * 3; i++) {
+    seeds[i] = Math.random();
+  }
+
+  // 4. Setup BufferGeometry
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+  geometry.setAttribute('aFrom', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+  geometry.setAttribute('aTo', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+  geometry.setAttribute('aLum', new THREE.BufferAttribute(portraitData.lums, 1));
+  geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 3));
+
+  // Initialize aFrom and aTo to portrait initially
+  geometry.attributes.aFrom.array.set(forms.portrait);
+  geometry.attributes.aTo.array.set(forms.cube);
+  geometry.attributes.aFrom.needsUpdate = true;
+  geometry.attributes.aTo.needsUpdate = true;
+
+  // 5. Shader Material Setup
+  const uniforms = {
+    uFrom: { value: new THREE.Vector4(0, 0, 0, 0) },
+    uTo: { value: new THREE.Vector4(0, 0, 0, 1) },
+    uFromRot: { value: new THREE.Vector2(0, 0) },
+    uToRot: { value: new THREE.Vector2(0, 0) },
+    uFromAlpha: { value: 1 },
+    uToAlpha: { value: 1 },
+    uMix: { value: 0 },
+    uTime: { value: 0 },
+    uProgress: { value: 0 },
+    uSpacing: { value: 3.2 },
+    uDot: { value: 1.8 },
+    uViewport: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+    uMouse: { value: new THREE.Vector2(-999, -999) },
+    uHover: { value: 0 },
+    uLens: { value: new THREE.Vector3(-999, -999, 0) },
+    uLensMax: { value: 65 },
+    uLensDot: { value: 3.2 },
+    uReveal: { value: new THREE.Vector3(-999, -999, 0) },
+    uSwirl: { value: 0.18 },
+    uMist: { value: 0 },
+    uColor: { value: new THREE.Color('#e0e6ed') },
+    uAccent: { value: new THREE.Color('#00f0ff') }
+  };
+
+  const material = new THREE.ShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    transparent: true,
+    depthWrite: false,
+    uniforms
+  });
+
+  const pointsMesh = new THREE.Points(geometry, material);
+  pointsMesh.frustumCulled = false;
+  scene.add(pointsMesh);
+
+  // 6. Section Mapping Configuration
+  const sections = [
+    { id: '#hero', form: 'portrait', tilt: 0, spin: 0 },
+    { id: '#projects', form: 'cube', tilt: 0.55, spin: 0.25 },
+    { id: '#skills', form: 'helix', tilt: 0.35, spin: 0.35 },
+    { id: '#about', form: 'wave', tilt: 0.95, spin: 0.1 },
+    { id: '#contact', form: 'name', tilt: 0, spin: 0 }
+  ];
+
+  // 7. Interaction State
+  const mouse = { x: -999, y: -999, targetX: -999, targetY: -999, hover: 0 };
+  const reveal = { x: -999, y: -999, radius: 0, targetRadius: 0 };
+  const lens = { x: -999, y: -999, radius: 0, targetRadius: 0 };
+
+  window.addEventListener('mousemove', (e) => {
+    mouse.targetX = e.clientX;
+    mouse.targetY = e.clientY;
+    mouse.hover = 1;
+
+    // Check if mouse is hovering over hero photo for X-Ray reveal
+    const photoFrame = document.querySelector('.hero-photo-frame');
+    if (photoFrame && window.scrollY < window.innerHeight * 0.7) {
+      const rect = photoFrame.getBoundingClientRect();
+      if (
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom
+      ) {
+        reveal.targetRadius = 135;
+        reveal.x = e.clientX;
+        reveal.y = e.clientY;
+      } else {
+        reveal.targetRadius = 0;
+      }
+    } else {
+      reveal.targetRadius = 0;
+    }
+  });
+
+  // Magnetic Hover Lens on Links / Buttons
+  document.querySelectorAll('a, button, [data-magnetic]').forEach((el) => {
+    el.addEventListener('mouseenter', (e) => {
+      const rect = el.getBoundingClientRect();
+      lens.x = rect.left + rect.width / 2;
+      lens.y = rect.top + rect.height / 2;
+      lens.targetRadius = Math.max(rect.width, rect.height) * 0.65;
+    });
+    el.addEventListener('mouseleave', () => {
+      lens.targetRadius = 0;
+    });
+  });
+
+  // Preloader fade-out
+  setTimeout(() => {
+    const preloader = document.getElementById('preloader');
+    if (preloader) preloader.classList.add('fade-out');
+    document.body.classList.remove('loading');
+  }, 500);
+
+  // 8. Render Animation Loop
+  let clock = new THREE.Clock();
+  let currentFromIdx = 0;
+  let currentToIdx = 1;
+  let activeMix = 0;
+
+  function render() {
+    requestAnimationFrame(render);
+
+    const time = clock.getElapsedTime();
+    const scrollY = window.scrollY;
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+
+    // Damping mouse & reveals
+    mouse.x += (mouse.targetX - mouse.x) * 0.1;
+    mouse.y += (mouse.targetY - mouse.y) * 0.1;
+    reveal.radius += (reveal.targetRadius - reveal.radius) * 0.12;
+    lens.radius += (lens.targetRadius - lens.radius) * 0.15;
+
+    // Calculate active section morphing based on scroll
+    const totalHeight = document.documentElement.scrollHeight - vh;
+    const scrollProgress = totalHeight > 0 ? scrollY / totalHeight : 0;
+    const sectionIndex = scrollProgress * (sections.length - 1);
+    const fromIdx = Math.floor(sectionIndex);
+    const toIdx = Math.min(sections.length - 1, fromIdx + 1);
+    const mixRatio = sectionIndex - fromIdx;
+
+    if (fromIdx !== currentFromIdx || toIdx !== currentToIdx) {
+      currentFromIdx = fromIdx;
+      currentToIdx = toIdx;
+
+      geometry.attributes.aFrom.array.set(forms[sections[fromIdx].form]);
+      geometry.attributes.aTo.array.set(forms[sections[toIdx].form]);
+      geometry.attributes.aFrom.needsUpdate = true;
+      geometry.attributes.aTo.needsUpdate = true;
+    }
+
+    activeMix = mixRatio;
+
+    // Placement Frame Dimensions
+    // Portrait: aligned to .hero-photo-frame in DOM
+    const photoFrame = document.querySelector('.hero-photo-frame');
+    let px = vw * 0.72;
+    let py = vh * 0.5;
+    let pSize = Math.min(vh * 0.7, 440);
+
+    if (photoFrame) {
+      const rect = photoFrame.getBoundingClientRect();
+      px = rect.left + rect.width / 2;
+      py = rect.top + rect.height / 2;
+      pSize = rect.height;
+    }
+
+    // Set Frames: cx, cy, size, kind (0=portrait, 1=form)
+    if (sections[fromIdx].form === 'portrait') {
+      uniforms.uFrom.value.set(px, py, pSize, 0);
+    } else {
+      uniforms.uFrom.value.set(vw * 0.68, vh * 0.5, Math.min(vh * 0.65, vw * 0.4), 1);
+    }
+
+    if (sections[toIdx].form === 'portrait') {
+      uniforms.uTo.value.set(px, py, pSize, 0);
+    } else if (sections[toIdx].form === 'name') {
+      uniforms.uTo.value.set(vw * 0.5, vh * 0.85, vw * 0.95, 1);
+    } else {
+      uniforms.uTo.value.set(vw * 0.68, vh * 0.5, Math.min(vh * 0.65, vw * 0.4), 1);
+    }
+
+    // Uniform Rotations
+    uniforms.uFromRot.value.set(sections[fromIdx].tilt, time * sections[fromIdx].spin);
+    uniforms.uToRot.value.set(sections[toIdx].tilt, time * sections[toIdx].spin);
+
+    // Uniform Updates
+    uniforms.uMix.value = activeMix;
+    uniforms.uTime.value = time;
+    uniforms.uProgress.value = Math.min(time * 0.8, 1.0);
+    uniforms.uViewport.value.set(vw, vh);
+    uniforms.uMouse.value.set(mouse.x, mouse.y);
+    uniforms.uHover.value = mouse.hover;
+    uniforms.uReveal.value.set(reveal.x, reveal.y, reveal.radius);
+    uniforms.uLens.value.set(lens.x, lens.y, lens.radius);
+    uniforms.uMist.value = sections[toIdx].form === 'name' ? 1.0 : 0.0;
+
+    renderer.render(scene, camera);
+  }
+
+  render();
+
+  // Window Resize
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    uniforms.uViewport.value.set(window.innerWidth, window.innerHeight);
+  });
+}
+
+// Start Engine
+initEngine();
