@@ -59,7 +59,7 @@
       <span class="brand-badge">AI &amp; DATA</span>
     </a>
 
-    <!-- Mode Selector: Site Experience vs 3D Journey vs Stage 04 PoC -->
+    <!-- Mode Selector: Site Experience vs 3D Journey -->
     <div class="mode-switcher" data-magnetic>
       <button class="mode-btn active" id="btn-mode-site" data-mode="site">
         <svg class="icon-nav" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -77,17 +77,6 @@
           </path>
         </svg>
         <span>3D Journey</span>
-      </button>
-      <button class="mode-btn" id="btn-mode-poc" data-mode="poc">
-        <svg class="icon-nav" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1.75">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
-          <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
-          <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-          <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
-        </svg>
-        <span>Stage 04 PoC</span>
       </button>
     </div>
 
@@ -923,53 +912,6 @@
           </div>
         </div>
 
-        <!-- Interactive 3D Facial Evolution Controls & Live Telemetry -->
-        <div class="poc-panel" id="poc-panel">
-          <!-- Angle Presets -->
-          <div class="poc-group">
-            <span class="poc-group-label">Camera Angle</span>
-            <div class="poc-btn-group">
-              <button class="poc-btn active" id="btn-poc-front" data-angle="front">Front (0°)</button>
-              <button class="poc-btn" id="btn-poc-left" data-angle="left">Angle Left (+25°)</button>
-              <button class="poc-btn" id="btn-poc-right" data-angle="right">Angle Right (-25°)</button>
-              <button class="poc-btn" id="btn-poc-free" data-angle="free">Free Orbit</button>
-            </div>
-          </div>
-
-          <!-- Shading Modes -->
-          <div class="poc-group">
-            <span class="poc-group-label">Shading Palette</span>
-            <div class="poc-btn-group">
-              <button class="poc-btn active" id="btn-poc-natural" data-shading="0">Natural Evolution</button>
-              <button class="poc-btn" id="btn-poc-cyber" data-shading="1">Cyber Cyan</button>
-              <button class="poc-btn" id="btn-poc-depth" data-shading="2">3D Depth Spectrum</button>
-            </div>
-          </div>
-
-          <!-- Live Telemetry HUD -->
-          <div class="poc-telemetry">
-            <div class="poc-stat">
-              <span class="stat-label">Frame Rate</span>
-              <span class="stat-value" id="hud-fps">-- FPS</span>
-            </div>
-            <div class="poc-stat">
-              <span class="stat-label">Frame Time</span>
-              <span class="stat-value" id="hud-frametime">-- ms</span>
-            </div>
-            <div class="poc-stat">
-              <span class="stat-label">GPU Memory</span>
-              <span class="stat-value" id="hud-vram">1,392 KB</span>
-            </div>
-            <div class="poc-stat">
-              <span class="stat-label">Particles</span>
-              <span class="stat-value" id="hud-count">12,000</span>
-            </div>
-            <div class="poc-stat">
-              <span class="stat-label">Draw Calls</span>
-              <span class="stat-value">1</span>
-            </div>
-          </div>
-        </div>
 
         <!-- Story Navigation Dots -->
         <div class="story-controls">

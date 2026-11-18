@@ -397,21 +397,9 @@ function initBackgroundEngine() {
   let currentScrollProgress = 0.0;
   let activeChapterIndex = 0;
 
-  // Stage 04 PoC Controls State
+  // Facial View Controls State
   let anglePreset = 'free'; // 'front', 'left', 'right', 'free'
   let targetPresetRot = { x: 0.06, y: 0.0 };
-
-  // Live Performance Telemetry State
-  let frameCount = 0;
-  let lastFpsUpdateTime = performance.now();
-  let lastFrameTime = performance.now();
-  let currentFps = 60;
-  let currentFrameDuration = 16.6;
-
-  const hudFps = document.getElementById('hud-fps');
-  const hudFrametime = document.getElementById('hud-frametime');
-  const hudVram = document.getElementById('hud-vram');
-  const hudCount = document.getElementById('hud-count');
 
   // Timeline Scrubber DOM elements (Option A)
   const timelineFill = document.getElementById('timeline-fill');
@@ -465,24 +453,6 @@ function initBackgroundEngine() {
       uniforms.uAudioBass.value = audioBassLevel;
     }
 
-    // Telemetry updates (measured every 500ms)
-    const now = performance.now();
-    const deltaMs = now - lastFrameTime;
-    lastFrameTime = now;
-    frameCount++;
-
-    if (now - lastFpsUpdateTime >= 500) {
-      currentFps = Math.round((frameCount * 1000) / (now - lastFpsUpdateTime));
-      currentFrameDuration = deltaMs.toFixed(1);
-      frameCount = 0;
-      lastFpsUpdateTime = now;
-
-      if (hudFps) hudFps.textContent = `${currentFps} FPS`;
-      if (hudFrametime) hudFrametime.textContent = `${currentFrameDuration} ms`;
-      if (hudCount) hudCount.textContent = `${COUNT.toLocaleString()}`;
-      // GPU Buffer VRAM: 12000 points * (4 pos*3*4 + 4 col*3*4 + feat*4 + lum*4 + seed*3*4) = 1,392 KB
-      if (hudVram) hudVram.textContent = `${(COUNT * 116 / 1024).toFixed(0)} KB`;
-    }
 
     mouse.x += (mouse.targetX - mouse.x) * 0.1;
     mouse.y += (mouse.targetY - mouse.y) * 0.1;
@@ -666,15 +636,9 @@ function initBackgroundEngine() {
     },
     setAnglePreset(preset) {
       anglePreset = preset;
-      document.querySelectorAll('.poc-btn[data-angle]').forEach((btn) => {
-        btn.classList.toggle('active', btn.getAttribute('data-angle') === preset);
-      });
     },
     setColorMode(mode) {
       uniforms.uColorMode.value = mode;
-      document.querySelectorAll('.poc-btn[data-shading]').forEach((btn) => {
-        btn.classList.toggle('active', parseInt(btn.getAttribute('data-shading'), 10) === mode);
-      });
     }
   };
 }
@@ -823,7 +787,6 @@ function initModeSwitcher(engine) {
   const storyView = document.getElementById('story-view');
   const btnSite = document.getElementById('btn-mode-site');
   const btnStory = document.getElementById('btn-mode-story');
-  const btnPoc = document.getElementById('btn-mode-poc');
   const btnStorySwitch = document.getElementById('btn-story-switch');
   const btnStoryContact = document.getElementById('btn-story-contact');
 
@@ -833,45 +796,31 @@ function initModeSwitcher(engine) {
 
   let activeMode = 'site';
 
-  function setMode(mode) {
+  function setMode(mode, initialChapter = null) {
     activeMode = mode;
     if (mode === 'site') {
       btnSite?.classList.add('active');
       btnStory?.classList.remove('active');
-      btnPoc?.classList.remove('active');
       siteView?.classList.remove('hidden-view');
       storyView?.classList.add('hidden-view');
       document.body.classList.remove('mode-story');
       document.body.style.overflow = 'auto';
       window.history.replaceState(null, '', '?v=site');
       engine?.setMode('site');
-    } else if (mode === 'poc') {
-      btnPoc?.classList.add('active');
-      btnStory?.classList.remove('active');
-      btnSite?.classList.remove('active');
-      siteView?.classList.add('hidden-view');
-      storyView?.classList.remove('hidden-view');
-      document.body.classList.add('mode-story');
-      document.body.style.overflow = 'hidden';
-      window.history.replaceState(null, '', '?v=story&stage=4');
-      engine?.setMode('story', 3.0);
-      engine?.setAnglePreset('front');
     } else {
       btnStory?.classList.add('active');
       btnSite?.classList.remove('active');
-      btnPoc?.classList.remove('active');
       siteView?.classList.add('hidden-view');
       storyView?.classList.remove('hidden-view');
       document.body.classList.add('mode-story');
       document.body.style.overflow = 'hidden';
       window.history.replaceState(null, '', '?v=story');
-      engine?.setMode('story');
+      engine?.setMode('story', initialChapter);
     }
   }
 
   btnSite?.addEventListener('click', () => setMode('site'));
   btnStory?.addEventListener('click', () => setMode('story'));
-  btnPoc?.addEventListener('click', () => setMode('poc'));
   btnStorySwitch?.addEventListener('click', () => setMode('site'));
   btnStoryContact?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -881,27 +830,9 @@ function initModeSwitcher(engine) {
     }, 100);
   });
 
-  // Wire POC Camera Angle Preset Buttons
-  document.querySelectorAll('.poc-btn[data-angle]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const angle = btn.getAttribute('data-angle');
-      engine?.setAnglePreset(angle);
-    });
-  });
-
-  // Wire POC Shading Palette Buttons
-  document.querySelectorAll('.poc-btn[data-shading]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const shading = parseInt(btn.getAttribute('data-shading'), 10);
-      engine?.setColorMode(shading);
-    });
-  });
-
   // Continuous Trackpad / Mouse Wheel Scroll Morphing in 3D Journey
   window.addEventListener('wheel', (e) => {
-    if (activeMode !== 'story' && activeMode !== 'poc') return;
+    if (activeMode !== 'story') return;
     const delta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 120);
     engine?.addScroll(delta * 0.0016);
   }, { passive: true });
@@ -909,12 +840,12 @@ function initModeSwitcher(engine) {
   // Continuous Touch Drag Morphing
   let touchStartY = 0;
   window.addEventListener('touchstart', (e) => {
-    if (activeMode !== 'story' && activeMode !== 'poc') return;
+    if (activeMode !== 'story') return;
     touchStartY = e.touches[0].clientY;
   }, { passive: true });
 
   window.addEventListener('touchmove', (e) => {
-    if (activeMode !== 'story' && activeMode !== 'poc') return;
+    if (activeMode !== 'story') return;
     const currentY = e.touches[0].clientY;
     const deltaY = touchStartY - currentY;
     touchStartY = currentY;
@@ -935,9 +866,9 @@ function initModeSwitcher(engine) {
 
   // Option A: Click / Tap on 3D Canvas in Journey Mode Triggers Particle Shockwave
   window.addEventListener('pointerdown', (e) => {
-    if (activeMode !== 'story' && activeMode !== 'poc') return;
+    if (activeMode !== 'story') return;
     // Don't trigger if clicking on interactive controls
-    if (e.target.closest('button, a, input, .poc-panel, .timeline-scrubber, .story-controls, .keyboard-legend, .header-controls, .mode-switcher, .arch-drawer, .booking-modal')) {
+    if (e.target.closest('button, a, input, .timeline-scrubber, .story-controls, .keyboard-legend, .header-controls, .mode-switcher, .arch-drawer, .booking-modal')) {
       return;
     }
     engine?.triggerShockwave(e.clientX, e.clientY);
@@ -945,29 +876,25 @@ function initModeSwitcher(engine) {
 
   // Option C: Full Keyboard Navigation & Shortcuts ([1-4], A, S, M, Space)
   window.addEventListener('keydown', (e) => {
+    if (activeMode !== 'story') return;
+
     // Stage Direct Jumps [1-4]
     if (['1', '2', '3', '4'].includes(e.key)) {
-      if (activeMode === 'story' || activeMode === 'poc') {
-        const stageIdx = parseInt(e.key, 10) - 1;
-        engine?.scrollToChapter(stageIdx);
-        return;
-      }
+      const stageIdx = parseInt(e.key, 10) - 1;
+      engine?.scrollToChapter(stageIdx);
+      return;
     }
 
     // Camera Angle Preset Cycle [A / a]
     if (e.key === 'a' || e.key === 'A') {
-      if (activeMode === 'story' || activeMode === 'poc') {
-        engine?.cycleAngle();
-        return;
-      }
+      engine?.cycleAngle();
+      return;
     }
 
     // Shading Palette Cycle [S / s]
     if (e.key === 's' || e.key === 'S') {
-      if (activeMode === 'story' || activeMode === 'poc') {
-        engine?.cycleShading();
-        return;
-      }
+      engine?.cycleShading();
+      return;
     }
 
     // Sound Mute / Unmute Toggle [M / m]
@@ -978,29 +905,25 @@ function initModeSwitcher(engine) {
 
     // Space Key Triggers Shockwave
     if (e.key === ' ') {
-      if (activeMode === 'story' || activeMode === 'poc') {
-        e.preventDefault();
-        engine?.triggerShockwave(window.innerWidth * 0.5, window.innerHeight * 0.40);
-        return;
-      }
+      e.preventDefault();
+      engine?.triggerShockwave(window.innerWidth * 0.5, window.innerHeight * 0.40);
+      return;
     }
 
     // Arrow Navigation
-    if (activeMode === 'story' || activeMode === 'poc') {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        engine?.nextChapter();
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        engine?.prevChapter();
-      }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      engine?.nextChapter();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      engine?.prevChapter();
     }
   });
 
   // URL Initial State Detection
   const params = new URLSearchParams(window.location.search);
-  if (params.get('stage') === '4' || params.get('v') === 'poc' || params.get('poc') === '1') {
-    setMode('poc');
+  if (params.get('stage') === '4' || params.get('v') === 'poc') {
+    setMode('story', 3.0);
   } else if (params.get('v') === 'story') {
     setMode('story');
   } else {
