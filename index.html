@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mohammad Roshan — Creative & AI Engineer | Data Systems Architect</title>
+  <meta name="description" content="Personal portfolio and interactive 3D WebGL experience of Mohammad Roshan — Creative Engineer, AI Engineer & Data Systems Architect building enormous things with AI." />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Syne:wght@500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- ESM Import Map for Three.js -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://esm.sh/three@0.170.0",
+        "three/addons/": "https://esm.sh/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="loading">
+  <!-- Custom Magnetic Cursor -->
+  <div class="cursor-dot" id="cursor-dot"></div>
+  <div class="cursor-circle" id="cursor-circle"></div>
+
+  <!-- Preloader Screen -->
+  <div class="preloader" id="preloader">
+    <div class="preloader-content">
+      <div class="preloader-title">MOHAMMAD ROSHAN</div>
+      <div class="preloader-subtitle">INITIALIZING 3D WEBGL ENGINE</div>
+      <div class="preloader-counter" id="loader-counter">00%</div>
+      <div class="preloader-bar">
+        <div class="preloader-bar-fill" id="loader-bar-fill"></div>
+      </div>
+      <div class="preloader-note">Best experienced with headphones</div>
+    </div>
+  </div>
+
+  <!-- Fullscreen WebGL Canvas Background -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- Sticky Global Navigation Header -->
+  <header class="site-header">
+    <a href="#" class="brand-logo" data-magnetic>
+      <span class="brand-symbol">✦</span>
+      <span class="brand-name">ROSHAN</span>
+      <span class="brand-badge">AI & DATA</span>
+    </a>
+
+    <!-- Mode Selector: Story Journey vs Site Mode (inacionakiti.com inspired) -->
+    <div class="mode-switcher" data-magnetic>
+      <button class="mode-btn active" id="btn-mode-site" data-mode="site">
+        <span class="dot"></span> Site Experience
+      </button>
+      <button class="mode-btn" id="btn-mode-story" data-mode="story">
+        <span class="icon">✨</span> 3D Journey
+      </button>
+    </div>
+
+    <!-- Right Controls: Audio & Quick Contact -->
+    <div class="header-controls">
+      <button class="audio-toggle" id="audio-toggle" data-magnetic aria-label="Toggle Sound">
+        <span class="sound-wave">
+          <span class="bar bar-1"></span>
+          <span class="bar bar-2"></span>
+          <span class="bar bar-3"></span>
+          <span class="bar bar-4"></span>
+        </span>
+        <span class="audio-label" id="audio-label">Sound Off</span>
+      </button>
+      
+      <a href="#contact" class="btn-primary" data-magnetic>Let's Talk</a>
+    </div>
+  </header>
+
+  <!-- Main Scrollable DOM Overlay (Synchronized via Lenis) -->
+  <main id="app-container">
+    
+    <!-- ==============================================
+         MODE 1: FULL PORTFOLIO SITE (?v=site)
+         ============================================== -->
+    <div id="site-view" class="active-view">
+      
+      <!-- HERO SECTION -->
+      <section class="section hero-section" id="hero">
+        <div class="container hero-container">
+          <div class="hero-status">
+            <span class="status-pulse"></span>
+            <span>Building enormous systems with AI & Data</span>
+          </div>
+
+          <h1 class="hero-title">
+            <span class="line"><span class="word">Creative</span> <span class="word highlight">Engineer</span></span>
+            <span class="line"><span class="word">&</span> <span class="word">AI / Data</span> <span class="word outline">Architect</span></span>
+          </h1>
+
+          <p class="hero-description">
+            Building enormous things with AI — from autonomous agent reasoning systems and multi-modal models to distributed high-throughput data engineering pipelines and immersive 3D WebGL interfaces.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#projects" class="btn-primary-lg" data-magnetic>
+              Explore AI & Data Projects
+              <span class="arrow">→</span>
+            </a>
+            <a href="#about" class="btn-secondary-lg" data-magnetic>
+              About Roshan
+            </a>
+          </div>
+
+          <div class="hero-scroll-indicator">
+            <div class="scroll-mouse">
+              <div class="scroll-wheel"></div>
+            </div>
+            <span>SCROLL TO EXPLORE 3D DATA SPACE</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURED PROJECTS SECTION -->
+      <section class="section projects-section" id="projects">
+        <div class="container">
+          <div class="section-header">
+            <div class="section-tag">01 / SELECTED WORK & REPOSITORIES</div>
+            <h2 class="section-title">Enormous AI & Data Systems</h2>
+            <p class="section-subtitle">Real-world intelligent architectures, distributed streaming pipelines, mobile products, and 3D simulations.</p>
+          </div>
+
+          <div class="projects-grid" id="projects-grid">
+            <!-- Project 1: AI Agent & LLM Orchestrator -->
+            <article class="project-card" data-tilt>
+              <div class="project-card-inner">
+                <div class="project-meta">
+                  <span class="project-tag">AI Engineering / Autonomous LLM</span>
+                  <span class="project-year">2026</span>
+                </div>
+                <h3 class="project-name">Autonomous Multi-Agent Core</h3>
+                <p class="project-desc">
+                  Enormous multi-agent reasoning cluster with dynamic DAG execution, vector retrieval-augmented generation (RAG), and autonomous self-evaluating tool invocation.
+                </p>
+                <div class="project-tech">
+                  <span>Python</span>
+                  <span>LangChain</span>
+                  <span>Qdrant / Pinecone</span>
+                  <span>FastAPI</span>
+                  <span>PyTorch</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/MohammadRoshankk" target="_blank" rel="noreferrer" class="project-link" data-magnetic>
+                    <span>GitHub: @MohammadRoshankk</span> ↗
+                  </a>
+                  <a href="https://github.com/alrawiweb-code" target="_blank" rel="noreferrer" class="project-link-secondary" data-magnetic>
+                    <span>@alrawiweb-code</span> ↗
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 2: Distributed Data Engineering Pipeline -->
+            <article class="project-card" data-tilt>
+              <div class="project-card-inner">
+                <div class="project-meta">
+                  <span class="project-tag">Data Engineering / Streaming</span>
+                  <span class="project-year">2025</span>
+                </div>
+                <h3 class="project-name">Distributed Data & Telemetry Stream</h3>
+                <p class="project-desc">
+                  High-throughput event streaming pipeline ingesting millions of daily metrics into analytical lakehouses with Apache Kafka, Spark transformations, and real-time alerts.
+                </p>
+                <div class="project-tech">
+                  <span>Apache Spark</span>
+                  <span>Kafka</span>
+                  <span>ClickHouse / BigQuery</span>
+                  <span>DBT</span>
+                  <span>Airflow</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/MohammadRoshankk" target="_blank" rel="noreferrer" class="project-link" data-magnetic>
+                    <span>View Architecture</span> ↗
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 3: Cosmoshift Entheos & Telos -->
+            <article class="project-card" data-tilt>
+              <div class="project-card-inner">
+                <div class="project-meta">
+                  <span class="project-tag">Mobile / Full-Stack Platform</span>
+                  <span class="project-year">2025</span>
+                </div>
+                <h3 class="project-name">Cosmoshift: Entheos & Telos</h3>
+                <p class="project-desc">
+                  Published suite of minimalist productivity, daily journaling, and ambient meditation companions featuring offline-first local data synchronization and procedural soundscapes.
+                </p>
+                <div class="project-tech">
+                  <span>Flutter / Dart</span>
+                  <span>SQLite</span>
+                  <span>Web Audio</span>
+                  <span>Node.js</span>
+                  <span>Google Play</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/alrawiweb-code" target="_blank" rel="noreferrer" class="project-link" data-magnetic>
+                    <span>View Repositories</span> ↗
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 4: Muslim Go+ : Prayer & Azan Engine -->
+            <article class="project-card" data-tilt>
+              <div class="project-card-inner">
+                <div class="project-meta">
+                  <span class="project-tag">Geolocation & Utilities</span>
+                  <span class="project-year">2024</span>
+                </div>
+                <h3 class="project-name">Muslim Go+ Astronomical Utility</h3>
+                <p class="project-desc">
+                  High-accuracy astronomical prayer computation engine utilizing localized latitude/longitude coordinate algorithms, push notification queues, and multilingual delivery.
+                </p>
+                <div class="project-tech">
+                  <span>Mobile SDK</span>
+                  <span>Math Algorithms</span>
+                  <span>Firebase</span>
+                  <span>REST API</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/alrawiweb-code" target="_blank" rel="noreferrer" class="project-link" data-magnetic>
+                    <span>View on GitHub</span> ↗
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Project 5: 3D Neural Particle Engine -->
+            <article class="project-card" data-tilt>
+              <div class="project-card-inner">
+                <div class="project-meta">
+                  <span class="project-tag">3D WebGL / Creative Engineering</span>
+                  <span class="project-year">2026</span>
+                </div>
+                <h3 class="project-name">Neural Matrix 3D Particle Cloud</h3>
+                <p class="project-desc">
+                  High-performance 30,000 GPU particle simulation simulating neural networks, curl noise turbulence, Catmull-Rom spline camera transitions, and audio-reactive feedback.
+                </p>
+                <div class="project-tech">
+                  <span>Three.js</span>
+                  <span>GLSL Shaders</span>
+                  <span>Web Audio API</span>
+                  <span>Lenis Scroll</span>
+                </div>
+                <div class="project-links">
+                  <a href="https://github.com/MohammadRoshankk" target="_blank" rel="noreferrer" class="project-link" data-magnetic>
+                    <span>View Engine Code</span> ↗
+                  </a>
+                  <a href="#hero" class="project-link-secondary" data-magnetic>
+                    <span>Live Simulation</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="github-cta-banner">
+            <div class="github-cta-info">
+              <h3>Explore Both Active GitHub Profiles</h3>
+              <p>Dive into codebases, open-source repositories, AI pipelines, and application architectures.</p>
+            </div>
+            <div class="github-buttons-group">
+              <a href="https://github.com/MohammadRoshankk" target="_blank" rel="noreferrer" class="btn-github" data-magnetic>
+                <span>github.com/MohammadRoshankk</span> ↗
+              </a>
+              <a href="https://github.com/alrawiweb-code" target="_blank" rel="noreferrer" class="btn-github-secondary" data-magnetic>
+                <span>github.com/alrawiweb-code</span> ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SKILLS & EXPERTISE SECTION -->
+      <section class="section skills-section" id="skills">
+        <div class="container">
+          <div class="section-header">
+            <div class="section-tag">02 / CORE CAPABILITIES</div>
+            <h2 class="section-title">AI, Data & Creative Engineering</h2>
+            <p class="section-subtitle">Architecting high-scale intelligent agents, distributed data pipelines, and immersive WebGL experiences.</p>
+          </div>
+
+          <div class="skills-grid">
+            <div class="skill-category">
+              <div class="skill-icon">🧠</div>
+              <h3>AI Engineering & Agents</h3>
+              <ul class="skill-list">
+                <li>Autonomous Multi-Agent Swarms & DAGs</li>
+                <li>Advanced RAG & Vector Indexing (Qdrant, Pinecone)</li>
+                <li>Model Fine-Tuning & Quantization (LoRA, GGUF)</li>
+                <li>Tool-Calling Pipelines & Reasoning Chains</li>
+                <li>PyTorch, LangChain, Hugging Face, Gemini API</li>
+              </ul>
+            </div>
+
+            <div class="skill-category">
+              <div class="skill-icon">⚡</div>
+              <h3>Data Engineering & Streaming</h3>
+              <ul class="skill-list">
+                <li>High-Throughput Streaming (Kafka, Apache Spark)</li>
+                <li>Scalable ETL / ELT Pipelines (Airflow, DBT, BigQuery)</li>
+                <li>Distributed Lakehouse & Analytical Warehousing</li>
+                <li>High-Performance Databases (PostgreSQL, ClickHouse, Redis)</li>
+                <li>Cloud Infrastructure (GCP, AWS, Docker, Kubernetes)</li>
+              </ul>
+            </div>
+
+            <div class="skill-category">
+              <div class="skill-icon">🎨</div>
+              <h3>Creative Web & Mobile Craft</h3>
+              <ul class="skill-list">
+                <li>Interactive Three.js, WebGL & GLSL Shaders</li>
+                <li>Mobile Engineering (Flutter, Dart, React Native)</li>
+                <li>Physics-Based Smooth Scroll (Lenis & GSAP)</li>
+                <li>React, Next.js, Modern TypeScript & Node.js</li>
+                <li>Procedural Web Audio API Soundscapes</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABOUT SECTION -->
+      <section class="section about-section" id="about">
+        <div class="container about-container">
+          <div class="about-visual">
+            <div class="avatar-card" data-tilt>
+              <div class="avatar-frame">
+                <!-- User's Real Portrait Photo with Glowing Frame -->
+                <img src="./roshan.jpg" alt="Mohammad Roshan K" class="avatar-photo" />
+                <div class="avatar-overlay-glow"></div>
+              </div>
+              <div class="avatar-reflection"></div>
+            </div>
+          </div>
+
+          <div class="about-content">
+            <div class="section-tag">03 / BACKGROUND</div>
+            <h2 class="section-title">Building Enormous Things with AI & Data</h2>
+            <p class="about-lead">
+              Hello! I'm <strong>Mohammad Roshan K</strong>, an AI Engineer, Data Systems Architect, and Creative Developer based in the UAE / India, and the creator behind <strong>Cosmoshift</strong>.
+            </p>
+            <p class="about-body">
+              I thrive on building massive, high-impact systems: from orchestrating autonomous AI agent swarms and scalable vector retrieval engines to designing multi-node data streaming pipelines that ingest millions of daily records. At the same time, I obsess over creative frontends — bringing technical depth alive through 60fps 3D WebGL experiences and intuitive digital apps.
+            </p>
+
+            <div class="about-stats">
+              <div class="stat-item">
+                <span class="stat-number">5+</span>
+                <span class="stat-label">Years of Engineering</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">10M+</span>
+                <span class="stat-label">Data Points Processed</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">60fps</span>
+                <span class="stat-label">3D WebGL Fluidity</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT SECTION -->
+      <section class="section contact-section" id="contact">
+        <div class="container contact-container">
+          <div class="contact-card">
+            <div class="section-tag">04 / COLLABORATE</div>
+            <h2 class="contact-title">Let’s Build Something Enormous.</h2>
+            <p class="contact-subtitle">
+              Whether you're developing an ambitious AI agent platform, architecting large-scale data systems, or creating a groundbreaking 3D product — let's connect.
+            </p>
+
+            <div class="contact-email-box">
+              <span class="email-text" id="email-address">rosancva@gmail.com</span>
+              <button class="btn-copy-email" id="btn-copy" data-magnetic>
+                <span id="copy-btn-text">Copy Email</span>
+              </button>
+            </div>
+
+            <div class="social-links">
+              <a href="https://www.linkedin.com/in/roshankk/" target="_blank" rel="noreferrer" class="social-pill" data-magnetic>
+                LinkedIn ↗
+              </a>
+              <a href="https://github.com/MohammadRoshankk" target="_blank" rel="noreferrer" class="social-pill" data-magnetic>
+                GitHub: @MohammadRoshankk ↗
+              </a>
+              <a href="https://github.com/alrawiweb-code" target="_blank" rel="noreferrer" class="social-pill" data-magnetic>
+                GitHub: @alrawiweb-code ↗
+              </a>
+              <a href="mailto:rosancva@gmail.com" class="social-pill" data-magnetic>
+                Direct Email ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="site-footer">
+        <div class="container footer-container">
+          <div class="footer-left">
+            <span>© 2026 Mohammad Roshan. All rights reserved.</span>
+          </div>
+          <div class="footer-center">
+            <span>Crafted with Three.js, GSAP & WebGL Shaders</span>
+          </div>
+          <div class="footer-right">
+            <a href="#hero" class="back-to-top" data-magnetic>Back to Top ↑</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+
+    <!-- ==============================================
+         MODE 2: 3D PARTICLE STORY JOURNEY (?v=story)
+         ============================================== -->
+    <div id="story-view" class="hidden-view">
+      <div class="story-container">
+        <!-- Story Stage 1 -->
+        <div class="story-chapter active-chapter" data-chapter="1">
+          <div class="story-tag">CHAPTER 01 / THE DATA FOUNDATION</div>
+          <h2 class="story-heading">Raw Data & Chaos</h2>
+          <p class="story-text">
+            Everything starts with unstructured points in space. Millions of raw signals waiting for high-performance streaming pipelines and distributed architectures to give them form.
+          </p>
+          <div class="story-instruction">Move your cursor to perturb the data field</div>
+        </div>
+
+        <!-- Story Stage 2 -->
+        <div class="story-chapter" data-chapter="2">
+          <div class="story-tag">CHAPTER 02 / NEURAL REASONING</div>
+          <h2 class="story-heading">Intelligent Synapses</h2>
+          <p class="story-text">
+            From data emerges intelligence. Autonomous agent swarms, vector retrieval spaces, and multi-modal neural connections operating in harmony.
+          </p>
+        </div>
+
+        <!-- Story Stage 3 -->
+        <div class="story-chapter" data-chapter="3">
+          <div class="story-tag">CHAPTER 03 / ENORMOUS SCALE</div>
+          <h2 class="story-heading">Distributed Matrix</h2>
+          <p class="story-text">
+            Architecting for massive throughput. High-frequency message queues, resilient cloud infrastructure, and low-latency lakehouse computation.
+          </p>
+        </div>
+
+        <!-- Story Stage 4 -->
+        <div class="story-chapter" data-chapter="4">
+          <div class="story-tag">CHAPTER 04 / CONVERGENCE</div>
+          <h2 class="story-heading">Building Enormous Things</h2>
+          <p class="story-text">
+            Synthesizing deep AI systems and data engineering with immersive, tactile 60fps creative web experiences. Let's create something extraordinary.
+          </p>
+          <div class="story-actions">
+            <a href="#contact" class="btn-primary-lg" id="btn-story-contact" data-magnetic>Connect with Roshan</a>
+            <button class="btn-secondary-lg" id="btn-story-switch" data-magnetic>Explore Full Portfolio</button>
+          </div>
+        </div>
+
+        <!-- Story Navigation Dots -->
+        <div class="story-controls">
+          <button class="story-nav-btn prev-btn" id="story-prev">←</button>
+          <div class="story-dots">
+            <span class="story-dot active" data-index="1"></span>
+            <span class="story-dot" data-index="2"></span>
+            <span class="story-dot" data-index="3"></span>
+            <span class="story-dot" data-index="4"></span>
+          </div>
+          <button class="story-nav-btn next-btn" id="story-next">→</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Script Modules -->
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
