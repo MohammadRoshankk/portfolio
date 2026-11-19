@@ -401,13 +401,6 @@ function initBackgroundEngine() {
   let anglePreset = 'free'; // 'front', 'left', 'right', 'free'
   let targetPresetRot = { x: 0.06, y: 0.0 };
 
-  // Timeline Scrubber DOM elements (Option A)
-  const timelineFill = document.getElementById('timeline-fill');
-  const timelineThumb = document.getElementById('timeline-thumb');
-  const timelinePercent = document.getElementById('timeline-percent');
-  const timelineStatus = document.getElementById('timeline-status');
-  const milestones = document.querySelectorAll('.timeline-milestone');
-
   const mouse = {
     targetX: window.innerWidth / 2,
     targetY: window.innerHeight / 2,
@@ -512,39 +505,6 @@ function initBackgroundEngine() {
       dots.forEach((dot, idx) => {
         dot.classList.toggle('active', idx === activeChapterIndex);
       });
-
-      // Option A: Update Timeline Scrubber UI in Real Time
-      const normProgress = Math.max(0.0, Math.min(3.0, currentScrollProgress));
-      const percentProgress = (normProgress / 3.0) * 100;
-
-      if (timelineFill) timelineFill.style.width = `${percentProgress}%`;
-      if (timelineThumb) timelineThumb.style.left = `${percentProgress}%`;
-      if (timelinePercent) timelinePercent.textContent = `${percentProgress.toFixed(1)}% MORPH`;
-
-      if (timelineStatus) {
-        if (normProgress < 0.15) {
-          timelineStatus.textContent = 'STAGE 01 — CHILDHOOD GENESIS (AGE 5)';
-        } else if (normProgress < 1.0) {
-          timelineStatus.textContent = `STAGE 01.${Math.floor(normProgress * 100)} — ${Math.round(normProgress * 100)}% MORPHING TO ADOLESCENCE`;
-        } else if (normProgress < 1.15) {
-          timelineStatus.textContent = 'STAGE 02 — ADOLESCENCE & DISCOVERY (AGE 14)';
-        } else if (normProgress < 2.0) {
-          timelineStatus.textContent = `STAGE 02.${Math.floor((normProgress - 1.0) * 100)} — ${Math.round((normProgress - 1.0) * 100)}% MORPHING TO YOUNG ADULT`;
-        } else if (normProgress < 2.15) {
-          timelineStatus.textContent = 'STAGE 03 — YOUNG ADULT & SYNTHESIS (AGE 22)';
-        } else if (normProgress < 2.85) {
-          timelineStatus.textContent = `STAGE 03.${Math.floor((normProgress - 2.0) * 100)} — ${Math.round((normProgress - 2.0) * 100)}% MORPHING TO ADULT IDENTITY`;
-        } else {
-          timelineStatus.textContent = 'STAGE 04 — MOHAMMAD ROSHAN (PRESENT IDENTITY)';
-        }
-      }
-
-      milestones.forEach((m) => {
-        const stageIdx = parseInt(m.getAttribute('data-stage'), 10);
-        m.classList.toggle('active', Math.round(normProgress) === stageIdx);
-        m.classList.toggle('passed', normProgress >= stageIdx);
-      });
-
     } else {
       // --- SITE EXPERIENCE MODE ---
       const scrollY = window.scrollY;
@@ -868,7 +828,7 @@ function initModeSwitcher(engine) {
   window.addEventListener('pointerdown', (e) => {
     if (activeMode !== 'story') return;
     // Don't trigger if clicking on interactive controls
-    if (e.target.closest('button, a, input, .timeline-scrubber, .story-controls, .keyboard-legend, .header-controls, .mode-switcher, .arch-drawer, .booking-modal')) {
+    if (e.target.closest('button, a, input, .story-controls, .header-controls, .mode-switcher, .arch-drawer, .booking-modal')) {
       return;
     }
     engine?.triggerShockwave(e.clientX, e.clientY);
@@ -932,58 +892,7 @@ function initModeSwitcher(engine) {
 }
 
 // ==========================================================================
-// 6. OPTION A: INTERACTIVE EVOLUTIONARY TIMELINE SCRUBBER
-// ==========================================================================
-function initTimelineScrubber(engine) {
-  const trackWrap = document.getElementById('timeline-track-wrap');
-  if (!trackWrap) return;
-
-  let isDragging = false;
-
-  function updateScrubber(clientX) {
-    const rect = trackWrap.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    engine?.scrollToChapter(ratio * 3.0);
-  }
-
-  trackWrap.addEventListener('pointerdown', (e) => {
-    isDragging = true;
-    try {
-      trackWrap.setPointerCapture(e.pointerId);
-    } catch (err) {}
-    updateScrubber(e.clientX);
-  });
-
-  trackWrap.addEventListener('pointermove', (e) => {
-    if (isDragging) {
-      updateScrubber(e.clientX);
-    }
-  });
-
-  const stopScrubbing = (e) => {
-    if (isDragging) {
-      isDragging = false;
-      try {
-        trackWrap.releasePointerCapture(e.pointerId);
-      } catch (err) {}
-    }
-  };
-
-  trackWrap.addEventListener('pointerup', stopScrubbing);
-  trackWrap.addEventListener('pointercancel', stopScrubbing);
-
-  // Click on Milestones
-  document.querySelectorAll('.timeline-milestone').forEach((m) => {
-    m.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const stage = parseInt(m.getAttribute('data-stage'), 10);
-      if (!isNaN(stage)) engine?.scrollToChapter(stage);
-    });
-  });
-}
-
-// ==========================================================================
-// 7. OPTION B: SLIDE-OUT ARCHITECTURE DRAWER ENGINE
+// 6. OPTION B: SLIDE-OUT ARCHITECTURE DRAWER ENGINE
 // ==========================================================================
 function initArchitectureDrawer() {
   const drawer = document.getElementById('arch-drawer');
@@ -1273,7 +1182,6 @@ const engine = initBackgroundEngine();
 initPortraitReveal();
 initAudioSystem();
 initModeSwitcher(engine);
-initTimelineScrubber(engine);
 initArchitectureDrawer();
 initSkillProjectFilter();
 initDubaiClockAndBooking();
