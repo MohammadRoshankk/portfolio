@@ -1,16 +1,14 @@
 /**
  * ==========================================================================
- * MOHAMMAD ROSHAN — REFINED SENIOR ENGINEERING PORTFOLIO ARCHITECTURE
- * - Background WebGL Engine: Restrained ambient 3D depth & scroll morphing
+ * MOHAMMAD ROSHAN — SENIOR ENGINEERING PORTFOLIO ARCHITECTURE
+ * - Background WebGL Engine: GPU-accelerated 4-stage facial evolution
  * - Dedicated Natural Portrait Reveal: Managed via portrait-reveal.js
- * - Procedural Web Audio API Synthesizer
  * - Dual-Mode Support: Site Experience (?v=site) & 3D Journey (?v=story)
  * ==========================================================================
  */
 
 import * as THREE from 'three';
 import { initPortraitReveal } from './portrait-reveal.js';
-import { ARCHITECTURE_DATA } from './architecture-data.js';
 import {
   EVOLUTION_COUNT,
   STAGE01_POSITIONS,
@@ -25,57 +23,49 @@ import {
   STAGE_FEATURES
 } from './evolution-stages-data.js';
 
-// --- MATH UTILITIES ---
-const PI2 = Math.PI * 2;
-const rand = (min = -1, max = 1) => min + Math.random() * (max - min);
-
-function easeInOut(t) {
-  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-}
-
 // ==========================================================================
 // 1. PROCEDURAL 3D FORM POPULATOR (4 CONTINUOUS FACIAL EVOLUTION STAGES)
 // ==========================================================================
 const FormGenerators = {
-  // Populate the 4 continuous facial evolution stages for COUNT particles
   populateEvolutionStages(count, forms, colors, lums, features) {
     for (let i = 0; i < count; i++) {
       const srcIdx = count === 12000 ? i : (i * 2) % 12000;
 
       // Positions
-      forms.stage01[i * 3] = STAGE01_POSITIONS[srcIdx * 3];
+      forms.stage01[i * 3]     = STAGE01_POSITIONS[srcIdx * 3];
       forms.stage01[i * 3 + 1] = STAGE01_POSITIONS[srcIdx * 3 + 1];
       forms.stage01[i * 3 + 2] = STAGE01_POSITIONS[srcIdx * 3 + 2];
 
-      forms.stage02[i * 3] = STAGE02_POSITIONS[srcIdx * 3];
+      forms.stage02[i * 3]     = STAGE02_POSITIONS[srcIdx * 3];
       forms.stage02[i * 3 + 1] = STAGE02_POSITIONS[srcIdx * 3 + 1];
       forms.stage02[i * 3 + 2] = STAGE02_POSITIONS[srcIdx * 3 + 2];
 
-      forms.stage03[i * 3] = STAGE03_POSITIONS[srcIdx * 3];
+      forms.stage03[i * 3]     = STAGE03_POSITIONS[srcIdx * 3];
       forms.stage03[i * 3 + 1] = STAGE03_POSITIONS[srcIdx * 3 + 1];
       forms.stage03[i * 3 + 2] = STAGE03_POSITIONS[srcIdx * 3 + 2];
 
-      forms.stage04[i * 3] = STAGE04_POSITIONS[srcIdx * 3];
+      forms.stage04[i * 3]     = STAGE04_POSITIONS[srcIdx * 3];
       forms.stage04[i * 3 + 1] = STAGE04_POSITIONS[srcIdx * 3 + 1];
       forms.stage04[i * 3 + 2] = STAGE04_POSITIONS[srcIdx * 3 + 2];
 
       // Colors
-      colors.stage01[i * 3] = STAGE01_COLORS[srcIdx * 3];
+      colors.stage01[i * 3]     = STAGE01_COLORS[srcIdx * 3];
       colors.stage01[i * 3 + 1] = STAGE01_COLORS[srcIdx * 3 + 1];
       colors.stage01[i * 3 + 2] = STAGE01_COLORS[srcIdx * 3 + 2];
 
-      colors.stage02[i * 3] = STAGE02_COLORS[srcIdx * 3];
+      colors.stage02[i * 3]     = STAGE02_COLORS[srcIdx * 3];
       colors.stage02[i * 3 + 1] = STAGE02_COLORS[srcIdx * 3 + 1];
       colors.stage02[i * 3 + 2] = STAGE02_COLORS[srcIdx * 3 + 2];
 
-      colors.stage03[i * 3] = STAGE03_COLORS[srcIdx * 3];
+      colors.stage03[i * 3]     = STAGE03_COLORS[srcIdx * 3];
       colors.stage03[i * 3 + 1] = STAGE03_COLORS[srcIdx * 3 + 1];
       colors.stage03[i * 3 + 2] = STAGE03_COLORS[srcIdx * 3 + 2];
 
-      colors.stage04[i * 3] = STAGE04_COLORS[srcIdx * 3];
+      colors.stage04[i * 3]     = STAGE04_COLORS[srcIdx * 3];
       colors.stage04[i * 3 + 1] = STAGE04_COLORS[srcIdx * 3 + 1];
       colors.stage04[i * 3 + 2] = STAGE04_COLORS[srcIdx * 3 + 2];
 
+      // Luminance & Feature weights
       lums[i] = STAGE_LUMS[srcIdx];
       features[i] = STAGE_FEATURES[srcIdx];
     }
@@ -96,8 +86,6 @@ const vertexShader = `
   uniform float uAlpha;
   uniform vec4 uFrame; // cx, cy, size px, aspect
   uniform vec2 uRotation;
-  uniform vec4 uShockwave; // x, y (screen px), start_time, intensity
-  uniform float uAudioBass; // 0.0 to 1.0 bass frequency energy
 
   attribute vec3 aPos1;
   attribute vec3 aPos2;
@@ -175,20 +163,16 @@ const vertexShader = `
     // Continuous 3D stage color interpolation
     vColor = mix(cFrom, cTo, t);
 
-    // Vapour-mist flight vortex during transitions
+    // Subtle flight vortex during transitions
     vec3 flightDir = normalize(aSeed * 2.0 - 1.0 + 0.0001);
     pos += flightDir * flight * uSwirl;
 
     // Subtle natural organic ambient breathing
     pos += vec3(
-      sin(uTime * 0.55 + aSeed.y * 6.283) * 0.010,
-      cos(uTime * 0.50 + aSeed.z * 6.283) * 0.010,
-      sin(uTime * 0.45 + aSeed.x * 6.283) * 0.010
+      sin(uTime * 0.55 + aSeed.y * 6.283) * 0.008,
+      cos(uTime * 0.50 + aSeed.z * 6.283) * 0.008,
+      sin(uTime * 0.45 + aSeed.x * 6.283) * 0.008
     );
-
-    // Option C: Audio-reactive synesthesia - pulse particle position along flight direction
-    float bassFactor = clamp(uAudioBass, 0.0, 1.0);
-    pos += flightDir * (bassFactor * 0.038);
 
     // Perspective spatial rotation
     vec3 pRot = rotate3D(pos, uRotation);
@@ -199,40 +183,18 @@ const vertexShader = `
     float persp = CAMERA / (CAMERA - pRot.z);
     vec2 screen = uFrame.xy + vec2(pRot.x, -pRot.y) * persp * uFrame.z;
 
-    // Option A: Interactive Shockwave Dispersion Wave
-    if (uShockwave.w > 0.001) {
-      float shockElapsed = uTime - uShockwave.z;
-      if (shockElapsed > 0.0 && shockElapsed < 1.6) {
-        vec2 shockCenter = uShockwave.xy;
-        float distToShock = distance(screen, shockCenter);
-        float waveRadius = shockElapsed * 460.0;
-        float waveDist = abs(distToShock - waveRadius);
-        float waveWidth = 85.0;
-        if (waveDist < waveWidth) {
-          float env = exp(-pow(waveDist / 40.0, 2.0));
-          float decay = exp(-shockElapsed * 2.0);
-          float ripple = sin((distToShock - waveRadius) * 0.12) * env * decay;
-          
-          vec2 dispDir = (distToShock > 0.1) ? normalize(screen - shockCenter) : vec2(0.0, 1.0);
-          screen += dispDir * (ripple * 48.0 * uShockwave.w);
-          pRot.z += ripple * 0.40 * uShockwave.w;
-        }
-      }
-    }
-
     // Subtle magnetic cursor deflection
     vec2 mouseDiff = screen - uMouse;
     float mouseDist = length(mouseDiff);
-    if (mouseDist < 200.0 && mouseDist > 0.1) {
-      float repel = (1.0 - mouseDist / 200.0);
-      screen += normalize(mouseDiff) * (repel * repel * 24.0 * uMouseForce);
+    if (mouseDist < 180.0 && mouseDist > 0.1) {
+      float repel = (1.0 - mouseDist / 180.0);
+      screen += normalize(mouseDiff) * (repel * repel * 20.0 * uMouseForce);
     }
 
     // Depth shading & point size
     float depthShade = clamp(0.60 + pRot.z * 0.85, 0.30, 1.0);
     float featureSize = mix(1.1, 0.88, aFeature);
-    // Option C: Bass energy scales point size dynamically
-    float ptSize = uDot * (0.65 + aSeed.y * 0.6) * persp * featureSize * (1.0 + bassFactor * 0.35);
+    float ptSize = uDot * (0.65 + aSeed.y * 0.6) * persp * featureSize;
 
     gl_Position = vec4(
       (screen.x / uViewport.x) * 2.0 - 1.0,
@@ -241,17 +203,19 @@ const vertexShader = `
       1.0
     );
 
-    vAlpha = depthShade * uAlpha;
-    gl_PointSize = ptSize * 1.30;
+    gl_PointSize = clamp(ptSize, 1.0, 24.0);
+
+    // Alpha blending with depth fade
+    vAlpha = uAlpha * depthShade * mix(0.70, 1.0, aLum);
   }
 `;
 
 const fragmentShader = `
+  precision highp float;
   uniform vec3 uColor;
   uniform vec3 uAccent;
   uniform vec3 uAccent2;
-  uniform float uScrollProgress;
-  uniform int uColorMode; // 0: Natural Evolving Palette, 1: Cyber Cyan, 2: 3D Depth Spectrum
+  uniform int uColorMode; // 0: Natural Portrait, 1: Cyan Cyber, 2: 3D Depth
 
   varying float vLum;
   varying float vSeed;
@@ -261,22 +225,30 @@ const fragmentShader = `
   varying float vDepth;
 
   void main() {
-    float d = length(gl_PointCoord - 0.5);
+    vec2 coord = gl_PointCoord - vec2(0.5);
+    float d = length(coord);
     if (d > 0.5) discard;
 
-    // 1. Base cybernetic palette
-    vec3 cyberColor = uColor * (0.35 + 0.65 * vLum);
-    cyberColor = mix(cyberColor, uAccent, step(0.970, vSeed));
-    cyberColor = mix(cyberColor, uAccent2, step(0.992, vSeed));
+    // Palette 0: Natural Color
+    vec3 naturalColor = vColor;
 
-    // 2. Natural evolving portrait palette with subtle lighting
-    vec3 naturalColor = vColor * (0.85 + 0.35 * vLum);
-    naturalColor = mix(naturalColor, uAccent, step(0.985, vSeed) * 0.30);
+    // Palette 1: Cyan Cyber Accent
+    vec3 cyberColor = mix(
+      vec3(0.08, 0.12, 0.18),
+      uAccent,
+      pow(vLum, 1.35)
+    );
+    if (vFeature > 0.5) {
+      cyberColor = mix(cyberColor, uAccent2, 0.45);
+    }
 
-    // 3. 3D Depth False-Color Spectrum
-    float normDepth = clamp((vDepth + 0.45) / 0.90, 0.0, 1.0);
-    vec3 depthColor = mix(vec3(0.08, 0.15, 0.85), vec3(0.0, 0.94, 1.0), smoothstep(0.15, 0.55, normDepth));
-    depthColor = mix(depthColor, vec3(1.0, 0.78, 0.25), smoothstep(0.55, 0.90, normDepth));
+    // Palette 2: 3D Depth Spectrum
+    float normDepth = clamp((vDepth + 0.35) / 0.85, 0.0, 1.0);
+    vec3 depthColor = mix(
+      vec3(0.02, 0.08, 0.22),
+      mix(vec3(0.0, 0.94, 1.0), vec3(1.0, 0.85, 0.5), normDepth),
+      normDepth
+    );
 
     vec3 finalColor;
     if (uColorMode == 1) {
@@ -310,7 +282,6 @@ function initBackgroundEngine() {
       powerPreference: 'high-performance'
     });
   } catch (e) {
-    console.warn('WebGL initialization fallback:', e);
     renderer = new THREE.WebGLRenderer({ canvas, alpha: true, depth: false });
   }
 
@@ -375,9 +346,7 @@ function initBackgroundEngine() {
     uColor: { value: new THREE.Color('#94a3b8') },
     uAccent: { value: new THREE.Color('#00f0ff') },
     uAccent2: { value: new THREE.Color('#38bdf8') },
-    uColorMode: { value: 0 }, // 0: Natural Portrait, 1: Cyan Cyber, 2: 3D Depth
-    uShockwave: { value: new THREE.Vector4(-999, -999, 0, 0) },
-    uAudioBass: { value: 0.0 }
+    uColorMode: { value: 0 } // 0: Natural Portrait, 1: Cyan Cyber, 2: 3D Depth
   };
 
   const material = new THREE.ShaderMaterial({
@@ -427,81 +396,65 @@ function initBackgroundEngine() {
     const vh = window.innerHeight;
     const vw = window.innerWidth;
 
-    // Option C: Audio Bass Frequency Extraction for Real-Time Synesthesia
-    if (audioAnalyser && soundEnabled && audioDataArray) {
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      audioAnalyser.getByteFrequencyData(audioDataArray);
-      let bassAcc = 0;
-      const binCount = Math.min(4, audioDataArray.length);
-      for (let b = 0; b < binCount; b++) {
-        bassAcc += audioDataArray[b];
-      }
-      const rawBass = bassAcc / (binCount * 255.0);
-      audioBassLevel += (rawBass - audioBassLevel) * 0.22;
-      uniforms.uAudioBass.value = audioBassLevel;
-    } else {
-      audioBassLevel *= 0.92;
-      uniforms.uAudioBass.value = audioBassLevel;
-    }
-
-
     mouse.x += (mouse.targetX - mouse.x) * 0.1;
     mouse.y += (mouse.targetY - mouse.y) * 0.1;
-    mouse.curNormX += (mouse.normX - mouse.curNormX) * 0.07;
-    mouse.curNormY += (mouse.normY - mouse.curNormY) * 0.07;
+    mouse.curNormX += (mouse.normX - mouse.curNormX) * 0.06;
+    mouse.curNormY += (mouse.normY - mouse.curNormY) * 0.06;
 
-    uniforms.uMouse.value.set(mouse.x, mouse.y);
     uniforms.uTime.value = time;
-    uniforms.uViewport.value.set(vw, vh);
+    uniforms.uMouse.value.set(mouse.x, mouse.y);
 
     if (currentMode === 'story') {
-      // --- 3D JOURNEY MODE (Scroll-Driven Point Cloud Morphing) ---
+      // --- 3D STORY JOURNEY MODE ---
       currentScrollProgress += (targetScrollProgress - currentScrollProgress) * 0.085;
       uniforms.uScrollProgress.value = currentScrollProgress;
 
-      const cx = vw * 0.5;
-      const cy = vh * 0.40;
-      const size = Math.min(vh * 0.74, vw * 0.65);
-      uniforms.uFrame.value.set(cx, cy, size, 1.0);
+      let targetRotX = 0.0;
+      let targetRotY = 0.0;
 
-      // Facial Evolution View Controls across all 4 stages
-      let rotX, rotY;
       if (anglePreset === 'front') {
-        rotX = 0.06 + mouse.curNormY * 0.08;
-        rotY = 0.0 + mouse.curNormX * 0.10;
+        targetRotX = 0.04;
+        targetRotY = 0.0;
       } else if (anglePreset === 'left') {
-        rotX = 0.06 + mouse.curNormY * 0.08;
-        rotY = 0.436 + mouse.curNormX * 0.10; // +25 degrees
+        targetRotX = 0.04;
+        targetRotY = 0.436; // +25 deg
       } else if (anglePreset === 'right') {
-        rotX = 0.06 + mouse.curNormY * 0.08;
-        rotY = -0.436 + mouse.curNormX * 0.10; // -25 degrees
+        targetRotX = 0.04;
+        targetRotY = -0.436; // -25 deg
       } else {
-        // Free Orbit
-        rotX = 0.06 + mouse.curNormY * 0.45;
-        rotY = mouse.curNormX * 0.75;
+        // Free Orbit: Smooth spatial rotation steered by cursor position
+        targetRotX = 0.06 - mouse.curNormY * 0.22;
+        targetRotY = mouse.curNormX * 0.38;
       }
-      uniforms.uRotation.value.set(rotX, rotY);
 
-      uniforms.uAlpha.value = 0.94;
-      uniforms.uDot.value = 2.5;
-      uniforms.uMouseForce.value = 0.45;
-      uniforms.uSwirl.value = 0.22;
+      targetPresetRot.x += (targetRotX - targetPresetRot.x) * 0.08;
+      targetPresetRot.y += (targetRotY - targetPresetRot.y) * 0.08;
 
-      // Synchronize Chapter text and dot indicators
-      const newActiveIdx = Math.round(currentScrollProgress);
-      if (newActiveIdx !== activeChapterIndex) {
-        activeChapterIndex = newActiveIdx;
-        playStoryTone(280 + activeChapterIndex * 110);
+      uniforms.uRotation.value.set(targetPresetRot.x, targetPresetRot.y);
+
+      // Centered framing for 3D face stage
+      const portraitSize = Math.min(vh * 0.72, vw * 0.62);
+      const portraitCx = vw * 0.5;
+      const portraitCy = vh * 0.42;
+
+      uniforms.uFrame.value.set(portraitCx, portraitCy, portraitSize, 1.0);
+      uniforms.uAlpha.value = 0.95;
+      uniforms.uMouseForce.value = 0.65;
+      uniforms.uSwirl.value = 0.18;
+
+      // Update story chapters and indicator dots
+      const chapterIdx = Math.max(0, Math.min(3, Math.round(currentScrollProgress)));
+      if (chapterIdx !== activeChapterIndex) {
+        activeChapterIndex = chapterIdx;
       }
 
       const chapters = document.querySelectorAll('.story-chapter');
-      chapters.forEach((ch, idx) => {
-        ch.classList.toggle('active-chapter', idx === activeChapterIndex);
+      const dots = document.querySelectorAll('.story-dot');
+
+      chapters.forEach((chap, idx) => {
+        chap.classList.toggle('active-chapter', idx === activeChapterIndex);
       });
 
-      const dots = document.querySelectorAll('.story-dot');
       dots.forEach((dot, idx) => {
         dot.classList.toggle('active', idx === activeChapterIndex);
       });
@@ -510,41 +463,48 @@ function initBackgroundEngine() {
       const scrollY = window.scrollY;
       const totalHeight = document.documentElement.scrollHeight - vh;
       const scrollRatio = totalHeight > 0 ? scrollY / totalHeight : 0;
-      const siteProgress = scrollRatio * 3.0;
 
-      currentScrollProgress += (siteProgress - currentScrollProgress) * 0.1;
+      currentScrollProgress += (scrollRatio * 3.0 - currentScrollProgress) * 0.08;
       uniforms.uScrollProgress.value = currentScrollProgress;
 
-      uniforms.uFrame.value.set(vw * 0.5, vh * 0.5, Math.min(vh * 0.7, vw * 0.7), 1.0);
-
-      const rotX = 0.18 + mouse.curNormY * 0.15;
-      const rotY = time * 0.08 + mouse.curNormX * 0.2;
+      // Ambient background rotation steered by scroll and mouse
+      const rotX = 0.12 - mouse.curNormY * 0.12;
+      const rotY = mouse.curNormX * 0.18 + currentScrollProgress * 0.15;
       uniforms.uRotation.value.set(rotX, rotY);
 
-      uniforms.uAlpha.value = 0.42;
-      uniforms.uDot.value = 1.7;
-      uniforms.uMouseForce.value = 0.25;
-      uniforms.uSwirl.value = 0.16;
+      // Scale and position behind the editorial content
+      const bgSize = Math.min(vh * 0.68, vw * 0.55);
+      const bgCx = vw * 0.5;
+      const bgCy = vh * 0.48;
+
+      uniforms.uFrame.value.set(bgCx, bgCy, bgSize, 1.0);
+      uniforms.uAlpha.value = Math.max(0.20, 0.45 - scrollRatio * 0.25);
+      uniforms.uMouseForce.value = 0.35;
+      uniforms.uSwirl.value = 0.10;
     }
 
     renderer.render(scene, camera);
   }
+
   render();
 
-  window.addEventListener('resize', () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
+  function onResize() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-    uniforms.uViewport.value.set(window.innerWidth, window.innerHeight);
-  });
+    uniforms.uViewport.value.set(w, h);
+  }
+
+  window.addEventListener('resize', onResize);
 
   return {
-    setMode(mode, initialChapter = null) {
+    setMode(mode, targetProg = null) {
       currentMode = mode;
       if (mode === 'story') {
-        if (initialChapter !== null) {
-          targetScrollProgress = initialChapter;
-          currentScrollProgress = initialChapter;
-          activeChapterIndex = Math.round(initialChapter);
+        if (targetProg !== null) {
+          targetScrollProgress = targetProg;
+          currentScrollProgress = targetProg;
         } else {
           targetScrollProgress = 0.0;
           currentScrollProgress = 0.0;
@@ -572,10 +532,6 @@ function initBackgroundEngine() {
         targetScrollProgress = Math.max(0.0, Math.ceil(currentScrollProgress - 1.05));
       }
     },
-    triggerShockwave(x, y) {
-      uniforms.uShockwave.value.set(x, y, clock.getElapsedTime(), 1.0);
-      playShockwaveChime();
-    },
     cycleAngle() {
       const angles = ['front', 'left', 'right', 'free'];
       const nextIdx = (angles.indexOf(anglePreset) + 1) % angles.length;
@@ -584,15 +540,6 @@ function initBackgroundEngine() {
     cycleShading() {
       const nextMode = (uniforms.uColorMode.value + 1) % 3;
       this.setColorMode(nextMode);
-    },
-    getAnglePreset() {
-      return anglePreset;
-    },
-    getColorMode() {
-      return uniforms.uColorMode.value;
-    },
-    getProgress() {
-      return currentScrollProgress;
     },
     setAnglePreset(preset) {
       anglePreset = preset;
@@ -604,149 +551,14 @@ function initBackgroundEngine() {
 }
 
 // ==========================================================================
-// 4. ATMOSPHERIC SOUNDTRACK & PROCEDURAL AUDIO SYSTEM / WEB AUDIO ANALYSER
-// ==========================================================================
-let audioTrack = null;
-let soundEnabled = false;
-let storyToneCtx = null;
-let audioCtx = null;
-let audioAnalyser = null;
-let audioDataArray = null;
-let audioSourceNode = null;
-let audioBassLevel = 0.0;
-
-function playStoryTone(freq = 440) {
-  try {
-    if (!storyToneCtx) {
-      storyToneCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (storyToneCtx.state === 'suspended') {
-      storyToneCtx.resume();
-    }
-    const osc = storyToneCtx.createOscillator();
-    const gain = storyToneCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, storyToneCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(freq * 1.35, storyToneCtx.currentTime + 0.12);
-
-    gain.gain.setValueAtTime(0.035, storyToneCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, storyToneCtx.currentTime + 0.12);
-
-    osc.connect(gain);
-    gain.connect(storyToneCtx.destination);
-    osc.start();
-    osc.stop(storyToneCtx.currentTime + 0.12);
-  } catch (e) {
-    // Audio context may await user gesture
-  }
-}
-
-// Option A: Resonant High-Register Chime for 3D Shockwave Dispersion
-function playShockwaveChime() {
-  try {
-    if (!storyToneCtx) {
-      storyToneCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (storyToneCtx.state === 'suspended') {
-      storyToneCtx.resume();
-    }
-    const chord = [523.25, 659.25, 783.99, 1046.50]; // Ethereal C Major arpeggiated chime
-    chord.forEach((freq, idx) => {
-      const osc = storyToneCtx.createOscillator();
-      const gain = storyToneCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, storyToneCtx.currentTime + idx * 0.025);
-      gain.gain.setValueAtTime(0.022, storyToneCtx.currentTime + idx * 0.025);
-      gain.gain.exponentialRampToValueAtTime(0.0001, storyToneCtx.currentTime + 0.38 + idx * 0.025);
-
-      osc.connect(gain);
-      gain.connect(storyToneCtx.destination);
-      osc.start(storyToneCtx.currentTime + idx * 0.025);
-      osc.stop(storyToneCtx.currentTime + 0.38 + idx * 0.025);
-    });
-  } catch (e) {
-    // Audio gesture fallback
-  }
-}
-
-function initAudioSystem() {
-  const audioBtn = document.getElementById('audio-toggle');
-  const audioLabel = document.getElementById('audio-label');
-  if (!audioBtn) return;
-
-  function ensureAudio() {
-    if (!audioTrack) {
-      audioTrack = new Audio('./assets/audio/epic-soundtrack.mp3');
-      audioTrack.loop = true;
-      audioTrack.volume = 0;
-
-      // Option C: Setup AnalyserNode for audio synesthesia
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        audioAnalyser = audioCtx.createAnalyser();
-        audioAnalyser.fftSize = 64;
-        audioDataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
-        audioSourceNode = audioCtx.createMediaElementSource(audioTrack);
-        audioSourceNode.connect(audioAnalyser);
-        audioAnalyser.connect(audioCtx.destination);
-      } catch (err) {
-        console.warn('Web Audio Analyser setup fallback:', err);
-      }
-    }
-  }
-
-  function fadeAudio(targetVol, duration, onComplete) {
-    if (!audioTrack) return;
-    const startVol = audioTrack.volume;
-    const delta = targetVol - startVol;
-    const startTime = performance.now();
-
-    function step(now) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      audioTrack.volume = Math.max(0, Math.min(1, startVol + delta * progress));
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      } else if (onComplete) {
-        onComplete();
-      }
-    }
-    requestAnimationFrame(step);
-  }
-
-  audioBtn.addEventListener('click', () => {
-    ensureAudio();
-    soundEnabled = !soundEnabled;
-
-    if (soundEnabled) {
-      audioBtn.classList.add('playing');
-      if (audioLabel) audioLabel.textContent = 'Sound On';
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      audioTrack.play().then(() => {
-        fadeAudio(0.5, 800);
-      }).catch(err => {
-        console.warn('Playback error:', err);
-      });
-    } else {
-      audioBtn.classList.remove('playing');
-      if (audioLabel) audioLabel.textContent = 'Sound Off';
-      fadeAudio(0, 600, () => {
-        audioTrack.pause();
-      });
-    }
-  });
-}
-
-// ==========================================================================
-// 5. SITE VIEW VS 3D JOURNEY MODE SWITCHER & KEYBOARD / SHOCKWAVE SYSTEM
+// 4. DUAL-MODE CONTROLLER & STORY INTERACTION (SITE vs 3D JOURNEY)
 // ==========================================================================
 function initModeSwitcher(engine) {
-  const siteView = document.getElementById('site-view');
-  const storyView = document.getElementById('story-view');
   const btnSite = document.getElementById('btn-mode-site');
   const btnStory = document.getElementById('btn-mode-story');
+  const siteView = document.getElementById('site-view');
+  const storyView = document.getElementById('story-view');
+
   const btnStorySwitch = document.getElementById('btn-story-switch');
   const btnStoryContact = document.getElementById('btn-story-contact');
 
@@ -790,14 +602,14 @@ function initModeSwitcher(engine) {
     }, 100);
   });
 
-  // Continuous Trackpad / Mouse Wheel Scroll Morphing in 3D Journey
+  // Trackpad / Mouse Wheel Scroll Morphing in 3D Journey
   window.addEventListener('wheel', (e) => {
     if (activeMode !== 'story') return;
     const delta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 120);
     engine?.addScroll(delta * 0.0016);
   }, { passive: true });
 
-  // Continuous Touch Drag Morphing
+  // Touch Drag Morphing
   let touchStartY = 0;
   window.addEventListener('touchstart', (e) => {
     if (activeMode !== 'story') return;
@@ -824,17 +636,7 @@ function initModeSwitcher(engine) {
     });
   });
 
-  // Option A: Click / Tap on 3D Canvas in Journey Mode Triggers Particle Shockwave
-  window.addEventListener('pointerdown', (e) => {
-    if (activeMode !== 'story') return;
-    // Don't trigger if clicking on interactive controls
-    if (e.target.closest('button, a, input, .story-controls, .header-controls, .mode-switcher, .arch-drawer, .booking-modal')) {
-      return;
-    }
-    engine?.triggerShockwave(e.clientX, e.clientY);
-  });
-
-  // Option C: Full Keyboard Navigation & Shortcuts ([1-4], A, S, M, Space)
+  // Keyboard Shortcuts in 3D Journey Mode
   window.addEventListener('keydown', (e) => {
     if (activeMode !== 'story') return;
 
@@ -854,19 +656,6 @@ function initModeSwitcher(engine) {
     // Shading Palette Cycle [S / s]
     if (e.key === 's' || e.key === 'S') {
       engine?.cycleShading();
-      return;
-    }
-
-    // Sound Mute / Unmute Toggle [M / m]
-    if (e.key === 'm' || e.key === 'M') {
-      document.getElementById('audio-toggle')?.click();
-      return;
-    }
-
-    // Space Key Triggers Shockwave
-    if (e.key === ' ') {
-      e.preventDefault();
-      engine?.triggerShockwave(window.innerWidth * 0.5, window.innerHeight * 0.40);
       return;
     }
 
@@ -892,215 +681,7 @@ function initModeSwitcher(engine) {
 }
 
 // ==========================================================================
-// 6. OPTION B: SLIDE-OUT ARCHITECTURE DRAWER ENGINE
-// ==========================================================================
-function initArchitectureDrawer() {
-  const drawer = document.getElementById('arch-drawer');
-  const backdrop = document.getElementById('arch-backdrop');
-  const closeBtn = document.getElementById('drawer-close');
-
-  const titleEl = document.getElementById('drawer-title');
-  const categoryEl = document.getElementById('drawer-category');
-  const descEl = document.getElementById('drawer-desc');
-  const metricsEl = document.getElementById('drawer-metrics');
-  const svgContainer = document.getElementById('drawer-svg-container');
-  const componentsEl = document.getElementById('drawer-components');
-  const tradeoffsEl = document.getElementById('drawer-tradeoffs');
-
-  function openDrawer(projectId) {
-    const data = ARCHITECTURE_DATA[projectId];
-    if (!data) return;
-
-    if (titleEl) titleEl.textContent = data.title;
-    if (categoryEl) categoryEl.textContent = data.category;
-    if (descEl) descEl.textContent = data.tagline;
-
-    if (metricsEl) {
-      metricsEl.innerHTML = data.metrics.map(m => `
-        <div class="arch-metric-card">
-          <div class="arch-metric-val">${m.value}</div>
-          <div class="arch-metric-label">${m.label}</div>
-        </div>
-      `).join('');
-    }
-
-    if (svgContainer) {
-      svgContainer.innerHTML = data.svgTopology;
-    }
-
-    if (componentsEl) {
-      componentsEl.innerHTML = data.components.map(c => `
-        <div class="arch-component-card">
-          <div class="arch-comp-name">${c.name}</div>
-          <div class="arch-comp-role">${c.role}</div>
-        </div>
-      `).join('');
-    }
-
-    if (tradeoffsEl) {
-      tradeoffsEl.innerHTML = data.tradeoffs.map(t => `
-        <div class="arch-tradeoff-card">
-          <div class="arch-tradeoff-decision">${t.decision}</div>
-          <div class="arch-tradeoff-rationale">${t.rationale}</div>
-        </div>
-      `).join('');
-    }
-
-    drawer?.classList.add('open');
-    backdrop?.classList.add('open');
-    drawer?.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeDrawer() {
-    drawer?.classList.remove('open');
-    backdrop?.classList.remove('open');
-    drawer?.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-  }
-
-  document.querySelectorAll('.btn-action-arch').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const projId = btn.getAttribute('data-project-id');
-      if (projId) openDrawer(projId);
-    });
-  });
-
-  closeBtn?.addEventListener('click', closeDrawer);
-  backdrop?.addEventListener('click', closeDrawer);
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && drawer?.classList.contains('open')) {
-      closeDrawer();
-    }
-  });
-}
-
-// ==========================================================================
-// 8. OPTION B: SKILL-TO-PROJECT CROSS-FILTERING & SPOTLIGHT ENGINE
-// ==========================================================================
-function initSkillProjectFilter() {
-  const filterChips = document.querySelectorAll('.filter-chip');
-  const projectCards = document.querySelectorAll('.project-card');
-  const activeIndicator = document.getElementById('active-filter-indicator');
-  const badgeText = document.getElementById('filter-badge-text');
-  const clearBtn = document.getElementById('btn-clear-filter');
-
-  function applyFilter(filterKey, label = null) {
-    filterChips.forEach(chip => {
-      chip.classList.toggle('active', chip.getAttribute('data-filter') === filterKey);
-    });
-
-    let matchCount = 0;
-    projectCards.forEach(card => {
-      const techList = (card.getAttribute('data-tech') || '').toLowerCase();
-      if (filterKey === 'all') {
-        card.classList.remove('filter-dimmed', 'filter-highlighted');
-        matchCount++;
-      } else if (techList.includes(filterKey.toLowerCase())) {
-        card.classList.remove('filter-dimmed');
-        card.classList.add('filter-highlighted');
-        matchCount++;
-      } else {
-        card.classList.remove('filter-highlighted');
-        card.classList.add('filter-dimmed');
-      }
-    });
-
-    if (filterKey === 'all') {
-      if (activeIndicator) activeIndicator.style.display = 'none';
-    } else {
-      if (activeIndicator) {
-        activeIndicator.style.display = 'inline-flex';
-        if (badgeText) badgeText.textContent = `${label || filterKey} (${matchCount} matching)`;
-      }
-    }
-  }
-
-  filterChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const key = chip.getAttribute('data-filter') || 'all';
-      applyFilter(key, chip.textContent.trim());
-    });
-  });
-
-  clearBtn?.addEventListener('click', () => {
-    applyFilter('all');
-  });
-
-  // Clicking capability items in #skills spotlights matching projects and scrolls smoothly!
-  document.querySelectorAll('.interactive-skill, .tech-tag[data-filter]').forEach(item => {
-    item.addEventListener('click', () => {
-      const filterKey = item.getAttribute('data-filter');
-      if (filterKey) {
-        applyFilter(filterKey, item.textContent.replace(' ↗', '').trim());
-        document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' });
-      }
-    });
-  });
-}
-
-// ==========================================================================
-// 9. OPTION B: LIVE DUBAI TIMEZONE BADGE & ARCHITECTURE CHAT MODAL
-// ==========================================================================
-function initDubaiClockAndBooking() {
-  const clockEl = document.getElementById('dubai-clock');
-  const modal = document.getElementById('booking-modal');
-  const backdrop = document.getElementById('booking-backdrop');
-  const closeBtn = document.getElementById('booking-close');
-  const bookBtn = document.getElementById('btn-book-chat');
-
-  function updateDubaiClock() {
-    if (!clockEl) return;
-    try {
-      const now = new Date();
-      // Dubai is UTC+4
-      const options = {
-        timeZone: 'Asia/Dubai',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      };
-      const formatter = new Intl.DateTimeFormat('en-US', options);
-      const timeStr = formatter.format(now);
-      clockEl.textContent = `${timeStr} GMT+4 (Dubai, UAE)`;
-    } catch (e) {
-      clockEl.textContent = 'GMT+4 (Dubai, UAE)';
-    }
-  }
-
-  updateDubaiClock();
-  setInterval(updateDubaiClock, 1000);
-
-  function openModal() {
-    modal?.classList.add('open');
-    backdrop?.classList.add('open');
-    modal?.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal() {
-    modal?.classList.remove('open');
-    backdrop?.classList.remove('open');
-    modal?.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-  }
-
-  bookBtn?.addEventListener('click', openModal);
-  closeBtn?.addEventListener('click', closeModal);
-  backdrop?.addEventListener('click', closeModal);
-
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal?.classList.contains('open')) {
-      closeModal();
-    }
-  });
-}
-
-// ==========================================================================
-// 10. COPY EMAIL, PRELOADER & CURSOR CONTROLS
+// 5. COPY EMAIL & CURSOR CONTROLS
 // ==========================================================================
 function initUIControls() {
   const btnCopy = document.getElementById('btn-copy');
@@ -1117,30 +698,6 @@ function initUIControls() {
       }, 2000);
     });
   });
-
-  // Preloader Counter Animation
-  const preloader = document.getElementById('preloader');
-  const counterEl = document.getElementById('loader-counter');
-  const barFillEl = document.getElementById('loader-bar-fill');
-
-  let loadCount = 0;
-  const countInterval = setInterval(() => {
-    loadCount += Math.floor(Math.random() * 12) + 8;
-    if (loadCount >= 100) {
-      loadCount = 100;
-      clearInterval(countInterval);
-      if (counterEl) counterEl.textContent = '100%';
-      if (barFillEl) barFillEl.style.width = '100%';
-
-      setTimeout(() => {
-        if (preloader) preloader.classList.add('fade-out');
-        document.body.classList.remove('loading');
-      }, 200);
-    } else {
-      if (counterEl) counterEl.textContent = `${loadCount < 10 ? '0' : ''}${loadCount}%`;
-      if (barFillEl) barFillEl.style.width = `${loadCount}%`;
-    }
-  }, 28);
 
   // Custom Magnetic Cursor
   const dot = document.getElementById('cursor-dot');
@@ -1180,10 +737,5 @@ function initUIControls() {
 // ==========================================================================
 const engine = initBackgroundEngine();
 initPortraitReveal();
-initAudioSystem();
 initModeSwitcher(engine);
-initArchitectureDrawer();
-initSkillProjectFilter();
-initDubaiClockAndBooking();
 initUIControls();
-
